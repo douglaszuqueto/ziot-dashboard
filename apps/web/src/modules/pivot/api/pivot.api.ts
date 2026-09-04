@@ -2,6 +2,7 @@ import {
   type PivotManualCommand,
   type PivotPayload,
   pivotAlertListSchema,
+  pivotCommandAckSchema,
   pivotCommandListSchema,
   pivotHistorySeriesSchema,
   pivotListResponseSchema,
@@ -102,20 +103,23 @@ export const sendPivotManualCommand = (
   id: string,
   payload: PivotManualCommand,
 ) =>
-  httpRequest<unknown>(pivotPath(id, "/commands/manual"), {
+  httpRequest(pivotPath(id, "/commands/manual"), {
     method: "POST",
     authToken: token,
+    schema: pivotCommandAckSchema,
     body: payload,
   });
 
 export const requestPivotStatus = (token: string, id: string) =>
-  httpRequest<unknown>(pivotPath(id, "/commands/status"), {
+  httpRequest(pivotPath(id, "/commands/status"), {
     method: "POST",
     authToken: token,
+    schema: pivotCommandAckSchema,
   });
 
 export const requestPivotGps = (token: string, id: string) =>
-  httpRequest<unknown>(pivotPath(id, "/commands/gps"), {
+  httpRequest(pivotPath(id, "/commands/gps"), {
     method: "POST",
     authToken: token,
+    schema: pivotCommandAckSchema,
   });

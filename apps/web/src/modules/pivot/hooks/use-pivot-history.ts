@@ -15,6 +15,12 @@ import type {
 
 export const HISTORY_PAGE_SIZE = 10;
 
+// Atualização ao vivo com a página aberta (pausa com a aba oculta):
+// comandos a cada 10 s (só na primeira página), alertas e histórico a cada 30 s.
+export const COMMANDS_REFETCH_MS = 10_000;
+export const ALERTS_REFETCH_MS = 30_000;
+export const HISTORY_REFETCH_MS = 30_000;
+
 // Prefixos das chaves: a página (`{limit, offset}`) entra no fim, então
 // invalidar o prefixo atinge todas as páginas.
 export const pivotAlertsKey = (tenantId?: string, id?: string) =>
@@ -52,6 +58,8 @@ export const usePivotAlerts = (id?: string, options?: Partial<HistoryPage>) => {
     enabled: Boolean(token && tenantId && id),
     retry: false,
     placeholderData: keepPreviousData,
+    refetchInterval: ALERTS_REFETCH_MS,
+    refetchIntervalInBackground: false,
   });
 };
 
@@ -71,6 +79,8 @@ export const usePivotCommands = (
     enabled: Boolean(token && tenantId && id),
     retry: false,
     placeholderData: keepPreviousData,
+    refetchInterval: page.offset === 0 ? COMMANDS_REFETCH_MS : false,
+    refetchIntervalInBackground: false,
   });
 };
 
@@ -86,6 +96,8 @@ export const usePivotHistory = (id?: string, hours = 24) => {
       EMPTY_HISTORY,
     enabled: Boolean(token && tenantId && id),
     retry: false,
-    staleTime: 60_000,
+    staleTime: 15_000,
+    refetchInterval: HISTORY_REFETCH_MS,
+    refetchIntervalInBackground: false,
   });
 };

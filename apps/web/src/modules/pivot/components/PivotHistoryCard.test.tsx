@@ -100,6 +100,7 @@ describe("PivotHistoryCard", () => {
     for (const column of [
       "Código",
       "Comando",
+      "Status",
       "Direção",
       "Velocidade",
       "Origem",
@@ -181,14 +182,31 @@ describe("PivotHistoryCard", () => {
         {
           id: "3f2a9c11-0000-4000-8000-000000000000",
           command: "water",
+          status: "sent",
+          seq: 12,
           direction: "forward",
           percentimeter: 50,
           origin: "manual",
+          error: null,
+          sent_at: "2026-09-03T15:40:01Z",
           accepted_at: null,
           created_at: "2026-09-03T15:40:00Z",
         },
+        {
+          id: "9b1c0000-0000-4000-8000-000000000000",
+          command: "stop",
+          status: "failed",
+          seq: 13,
+          direction: null,
+          percentimeter: null,
+          origin: "manual",
+          error: "timeout",
+          sent_at: "2026-09-03T15:41:01Z",
+          accepted_at: null,
+          created_at: "2026-09-03T15:41:00Z",
+        },
       ],
-      total: 1,
+      total: 2,
     };
 
     render(<PivotHistoryCard pivotId="pv-1" />);
@@ -203,7 +221,12 @@ describe("PivotHistoryCard", () => {
     expect(screen.getByText("Água")).toBeInTheDocument();
     expect(screen.getByText("Avanço")).toBeInTheDocument();
     expect(screen.getByText("50%")).toBeInTheDocument();
-    expect(screen.getByText("Manual")).toBeInTheDocument();
+    expect(screen.getAllByText("Manual")).toHaveLength(2);
+    expect(screen.getByText("Enviado")).toBeInTheDocument();
+    expect(screen.getByText("Falhou")).toBeInTheDocument();
+    expect(
+      screen.getByText("Sem resposta do dispositivo (timeout)"),
+    ).toBeInTheDocument();
   });
 
   it("mostra erro quando a consulta falha", () => {

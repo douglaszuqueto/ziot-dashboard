@@ -33,7 +33,7 @@ import {
   resolvePivotStatus,
 } from "@/modules/pivot/lib/pivot-status";
 import type { Pivot, PivotState } from "@/modules/pivot/schemas/pivot.schemas";
-import { formatInteger } from "@/shared/lib/format";
+import { formatInteger, formatNumber } from "@/shared/lib/format";
 
 // Cartão de três colunas do detalhe (mesma composição do resumo da estufa):
 // ESTADO · PIVÔ (contadores + ilustração + legenda) · HIDRÁULICA E ELÉTRICA.
@@ -125,6 +125,11 @@ export const PivotOverview = ({
           label="Pressão"
           value={pressure.value}
           unit={pressure.unit}
+          caption={
+            pivot.pressure_ref !== null
+              ? `ref. ${formatNumber(pivot.pressure_ref, 1)} bar`
+              : undefined
+          }
         />
         <PivotMetricTile
           icon={Zap}

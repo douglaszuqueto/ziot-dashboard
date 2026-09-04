@@ -10,7 +10,15 @@ export const pivotStateKey = (tenantId?: string, id?: string) =>
 // GET /v1/pivots/{id}/state (contrato em ziot-api/docs/modules/pivot/README.md).
 // Enquanto o backend não implementa o endpoint (404), a query resolve `null`
 // e as telas seguem com "—".
-export const usePivotStateQuery = (id?: string) => {
+export interface PivotStateOptions {
+  // Intervalo de atualização em ms (pausa com a aba oculta); `false` desliga.
+  refetchInterval?: number | false;
+}
+
+export const usePivotStateQuery = (
+  id?: string,
+  { refetchInterval = false }: PivotStateOptions = {},
+) => {
   const { token, tenantId } = usePivotSession();
 
   return useQuery({
@@ -18,12 +26,16 @@ export const usePivotStateQuery = (id?: string) => {
     queryFn: () => nullOn404(() => fetchPivotState(token, id ?? "")),
     enabled: Boolean(token && tenantId && id),
     retry: false,
-    staleTime: 30_000,
+    staleTime: 5_000,
+    refetchInterval,
+    refetchIntervalInBackground: false,
   });
 };
 
-export const usePivotState = (id?: string): PivotState | undefined =>
-  usePivotStateQuery(id).data ?? undefined;
+export const usePivotState = (
+  id?: string,
+  options?: PivotStateOptions,
+): PivotState | undefined => usePivotStateQuery(id, options).data ?? undefined;
 
 export const useInvalidatePivotState = () => {
   const { tenantId } = usePivotSession();

@@ -23,7 +23,7 @@ const TITLE = "Pivôs";
 const PivotListCard = (
   props: Omit<Parameters<typeof PivotCard>[0], "state">,
 ) => {
-  const state = usePivotState(props.pivot.id);
+  const state = usePivotState(props.pivot.id, { refetchInterval: 30_000 });
   return <PivotCard {...props} state={state} />;
 };
 

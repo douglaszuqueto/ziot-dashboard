@@ -7,11 +7,14 @@ export const PivotMetricTile = ({
   label,
   value,
   unit,
+  caption,
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
   unit?: string;
+  // Linha discreta abaixo do valor (ex.: "ref. 3,5 bar").
+  caption?: string;
 }) => (
   <div className="flex items-center gap-3 rounded-2xl bg-secondary/60 px-3 py-3">
     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -29,6 +32,11 @@ export const PivotMetricTile = ({
           </span>
         ) : null}
       </p>
+      {caption ? (
+        <p className="mt-1 truncate text-[11px] text-muted-foreground">
+          {caption}
+        </p>
+      ) : null}
     </div>
   </div>
 );

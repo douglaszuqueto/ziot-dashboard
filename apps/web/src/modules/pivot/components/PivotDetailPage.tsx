@@ -47,7 +47,8 @@ export const PivotDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const query = usePivotQuery(id);
-  const stateQuery = usePivotStateQuery(id);
+  // Estado ao vivo a cada 10 s enquanto a página está visível.
+  const stateQuery = usePivotStateQuery(id, { refetchInterval: 10_000 });
   const history = usePivotHistory(id, 24);
   const alerts = usePivotAlerts(id);
   // O contador "Alertas" da coluna Pivô reflete o histórico carregado.

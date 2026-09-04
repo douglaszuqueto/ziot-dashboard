@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   pivotAlertListSchema,
+  pivotCommandAckSchema,
   pivotCommandListSchema,
   pivotFormSchema,
   pivotHistorySeriesSchema,
@@ -21,6 +22,7 @@ const apiPivot = {
   device_id: null,
   latitude: -22.69,
   longitude: -46.98,
+  pressure_ref: null,
   created_at: "2026-09-01T10:00:00Z",
   updated_at: "2026-09-02T10:00:00Z",
 };
@@ -66,6 +68,7 @@ describe("pivotFormSchema", () => {
       description: "",
       latitude: null,
       longitude: null,
+      pressure_ref: null,
     });
   });
 
@@ -81,7 +84,32 @@ describe("pivotFormSchema", () => {
       description: "Área irrigada",
       latitude: -22.69,
       longitude: -46.98,
+      pressure_ref: null,
     });
+  });
+
+  it("aceita pressão de referência opcional (vírgula, mínimo 0)", () => {
+    const valid = pivotFormSchema.parse({
+      name: "Pivô 05",
+      description: "",
+      latitude: "",
+      longitude: "",
+      pressure_ref: "3,5",
+    });
+    expect(toPivotPayload(valid).pressure_ref).toBe(3.5);
+    expect(
+      pivotFormSchema.safeParse({
+        name: "Pivô 05",
+        description: "",
+        latitude: "",
+        longitude: "",
+        pressure_ref: "-1",
+      }).success,
+    ).toBe(false);
+    expect(
+      toPivotFormInput(pivotSchema.parse({ ...apiPivot, pressure_ref: 2 }))
+        .pressure_ref,
+    ).toBe("2");
   });
 
   it("rejeita coordenadas fora do intervalo ou incompletas", () => {
@@ -112,12 +140,14 @@ describe("pivotFormSchema", () => {
       description: "Talhão norte",
       latitude: "-22.69",
       longitude: "-46.98",
+      pressure_ref: "",
     });
     expect(toPivotFormInput(null)).toEqual({
       name: "",
       description: "",
       latitude: "",
       longitude: "",
+      pressure_ref: "",
     });
   });
 });
@@ -166,12 +196,44 @@ describe("contrato legado: comandos, alertas, histórico", () => {
     expect(commands.items[0]).toEqual({
       id: "cmd-1",
       command: "water",
+      status: "pending",
+      seq: null,
       direction: null,
       percentimeter: null,
       origin: null,
+      error: null,
+      sent_at: null,
       accepted_at: null,
       created_at: "2026-09-03T15:40:00Z",
     });
+
+    const failed = pivotCommandListSchema.parse({
+      items: [
+        {
+          id: "cmd-2",
+          command: "stop",
+          status: "failed",
+          seq: 7,
+          error: "timeout",
+          sent_at: "2026-09-03T15:40:01Z",
+          created_at: "2026-09-03T15:40:00Z",
+        },
+      ],
+    }).items[0];
+    expect(failed).toMatchObject({
+      status: "failed",
+      seq: 7,
+      error: "timeout",
+    });
+
+    expect(pivotCommandAckSchema.parse(null)).toBeNull();
+    expect(
+      pivotCommandAckSchema.parse({
+        id: "cmd-3",
+        status: "pending",
+        error: "no linked device",
+      }),
+    ).toMatchObject({ status: "pending", error: "no linked device" });
 
     const alerts = pivotAlertListSchema.parse({
       items: [{ alert: "Pivô parado", created_at: "2026-09-03T15:40:00Z" }],

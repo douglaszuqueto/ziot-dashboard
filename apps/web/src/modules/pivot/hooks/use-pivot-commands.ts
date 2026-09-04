@@ -9,18 +9,25 @@ import { pivotStateKey } from "@/modules/pivot/hooks/use-pivot-state";
 import { usePivotSession } from "@/modules/pivot/hooks/use-pivots";
 import type { PivotManualCommand } from "@/modules/pivot/schemas/pivot.schemas";
 
-// Após um comando, o estado e o histórico de comandos ficam desatualizados.
+export const COMMAND_FOLLOW_UP_MS = 3_000;
+
+// Após um comando, estado e histórico são refeitos na hora e de novo após
+// 3 s (tempo do downlink → ack do dispositivo, protocolo-mqtt-v2.md §6).
 const useInvalidateAfterCommand = (id: string) => {
   const { tenantId } = usePivotSession();
   const queryClient = useQueryClient();
 
   return () => {
-    void queryClient.invalidateQueries({
-      queryKey: pivotStateKey(tenantId, id),
-    });
-    void queryClient.invalidateQueries({
-      queryKey: pivotCommandsKey(tenantId, id),
-    });
+    const refetch = () => {
+      void queryClient.invalidateQueries({
+        queryKey: pivotStateKey(tenantId, id),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: pivotCommandsKey(tenantId, id),
+      });
+    };
+    refetch();
+    window.setTimeout(refetch, COMMAND_FOLLOW_UP_MS);
   };
 };
 
