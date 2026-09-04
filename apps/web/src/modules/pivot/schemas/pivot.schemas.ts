@@ -15,6 +15,8 @@ export const pivotSchema = z.object({
   device_id: z.string().nullable().default(null),
   latitude: z.number().nullable().default(null),
   longitude: z.number().nullable().default(null),
+  // Pressão de referência (bar) informada no cadastro; opcional.
+  pressure_ref: z.number().nullable().default(null),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -52,8 +54,33 @@ const optionalCoordinate = (min: number, max: number, label: string) =>
       }
     });
 
-// Formulário de criação/edição. Coordenadas ficam como texto no input e são
-// convertidas no payload (`toPivotPayload`).
+// Número opcional (texto no input, vírgula aceita) com mínimo.
+const optionalNumber = (min: number, label: string) =>
+  z
+    .string()
+    .trim()
+    .default("")
+    .transform((value) => value.replace(",", "."))
+    .superRefine((value, context) => {
+      if (!value) return;
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${label} deve ser numérica`,
+        });
+        return;
+      }
+      if (parsed < min) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${label} deve ser maior ou igual a ${min}`,
+        });
+      }
+    });
+
+// Formulário de criação/edição. Coordenadas e pressão ficam como texto no
+// input e são convertidas no payload (`toPivotPayload`).
 export const pivotFormSchema = z
   .object({
     name: z
@@ -68,6 +95,7 @@ export const pivotFormSchema = z
       .default(""),
     latitude: optionalCoordinate(-90, 90, "Latitude"),
     longitude: optionalCoordinate(-180, 180, "Longitude"),
+    pressure_ref: optionalNumber(0, "Pressão de referência"),
   })
   .superRefine((value, context) => {
     if (Boolean(value.latitude) !== Boolean(value.longitude)) {
@@ -89,6 +117,7 @@ export interface PivotPayload {
   description: string;
   latitude: number | null;
   longitude: number | null;
+  pressure_ref: number | null;
 }
 
 const toCoordinate = (value: string) => (value ? Number(value) : null);
@@ -98,6 +127,7 @@ export const toPivotPayload = (values: PivotFormValues): PivotPayload => ({
   description: values.description,
   latitude: toCoordinate(values.latitude),
   longitude: toCoordinate(values.longitude),
+  pressure_ref: toCoordinate(values.pressure_ref),
 });
 
 const toCoordinateInput = (value: number | null | undefined) =>
@@ -108,6 +138,7 @@ export const toPivotFormInput = (pivot?: Pivot | null): PivotFormInput => ({
   description: pivot?.description ?? "",
   latitude: toCoordinateInput(pivot?.latitude),
   longitude: toCoordinateInput(pivot?.longitude),
+  pressure_ref: toCoordinateInput(pivot?.pressure_ref),
 });
 
 // Estado de telemetria do pivô (uplink `status`/`gps` do protocolo legado v2 —
@@ -174,15 +205,41 @@ export type PivotCommandMode = (typeof PIVOT_COMMAND_MODES)[number];
 export type PivotCommandDirection = (typeof PIVOT_COMMAND_DIRECTIONS)[number];
 
 // GET /v1/pivots/{id}/commands?limit=
+// Ciclo do comando (protocolo-mqtt-v2.md §6): pending → sent (downlink
+// publicado) → accepted (ack 00) | failed (ack 01/02 ou timeout de 30 s).
+export const PIVOT_COMMAND_STATUSES = [
+  "pending",
+  "sent",
+  "accepted",
+  "failed",
+] as const;
+
 export const pivotCommandSchema = z.object({
   id: z.string(),
   command: z.string(),
+  status: z.string().default("pending"),
+  seq: z.number().nullable().default(null),
   direction: z.string().nullable().default(null),
   percentimeter: z.number().nullable().default(null),
   origin: z.string().nullable().default(null),
+  error: z.string().nullable().default(null),
+  sent_at: z.string().nullable().default(null),
   accepted_at: z.string().nullable().default(null),
   created_at: z.string(),
 });
+
+// Resposta dos POST .../commands/* (202). Pode vir vazia; com `error` e
+// `status: "pending"` o pivô não tem dispositivo vinculado.
+export const pivotCommandAckSchema = z
+  .object({
+    id: z.string().optional(),
+    status: z.string().optional(),
+    error: z.string().nullable().optional(),
+  })
+  .passthrough()
+  .nullable();
+
+export type PivotCommandAck = z.infer<typeof pivotCommandAckSchema>;
 
 // Paginação: `total` é a contagem completa; `limit`/`offset` ecoam a página.
 export const pivotCommandListSchema = z.object({

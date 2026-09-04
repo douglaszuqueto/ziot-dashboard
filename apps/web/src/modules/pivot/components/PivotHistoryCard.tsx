@@ -19,10 +19,13 @@ import {
   usePivotCommands,
 } from "@/modules/pivot/hooks/use-pivot-history";
 import {
+  commandStatusMeta,
   formatAlertKind,
   formatCommandDirection,
+  formatCommandError,
   formatCommandName,
   formatCommandOrigin,
+  isCommandFailed,
   shortId,
 } from "@/modules/pivot/lib/pivot-commands";
 import { formatPivotPercent } from "@/modules/pivot/lib/pivot-state";
@@ -147,7 +150,7 @@ export const PivotHistoryCard = ({ pivotId }: { pivotId: string }) => {
             isFetching={commands.isFetching}
             isError={commands.isError}
             emptyText="Nenhum comando enviado"
-            columns={7}
+            columns={8}
             onRefresh={() =>
               refresh(commandsPage, setCommandsPage, commands.refetch)
             }
@@ -155,6 +158,7 @@ export const PivotHistoryCard = ({ pivotId }: { pivotId: string }) => {
               <TableRow className="hover:bg-transparent">
                 <TableHead className={HEAD_CLASS}>Código</TableHead>
                 <TableHead className={HEAD_CLASS}>Comando</TableHead>
+                <TableHead className={HEAD_CLASS}>Status</TableHead>
                 <TableHead className={HEAD_CLASS}>Direção</TableHead>
                 <TableHead className={HEAD_CLASS}>Velocidade</TableHead>
                 <TableHead className={HEAD_CLASS}>Origem</TableHead>
@@ -208,6 +212,9 @@ const CommandRow = ({ command }: { command: PivotCommand }) => (
       {formatCommandName(command.command)}
     </TableCell>
     <TableCell className={CELL_CLASS}>
+      <CommandStatusPill command={command} />
+    </TableCell>
+    <TableCell className={CELL_CLASS}>
       {formatCommandDirection(command.direction)}
     </TableCell>
     <TableCell className={CELL_CLASS}>
@@ -228,6 +235,37 @@ const CommandRow = ({ command }: { command: PivotCommand }) => (
     </TableCell>
   </TableRow>
 );
+
+// Pílula do ciclo do comando; em "Falhou", o motivo aparece em texto discreto.
+const CommandStatusPill = ({ command }: { command: PivotCommand }) => {
+  const meta = commandStatusMeta(command.status);
+  const error = isCommandFailed(command.status)
+    ? formatCommandError(command.error)
+    : null;
+
+  return (
+    <div className="min-w-0">
+      <Badge
+        variant="outline"
+        className={cn(
+          "border-transparent px-2.5 py-0.5 text-[11px] uppercase tracking-wider",
+          meta.className,
+        )}
+        title={command.seq !== null ? `seq ${command.seq}` : undefined}
+      >
+        {meta.label}
+      </Badge>
+      {error ? (
+        <p
+          className="mt-1 max-w-[220px] truncate text-xs text-muted-foreground"
+          title={error}
+        >
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+};
 
 const HistoryPanel = ({
   title,

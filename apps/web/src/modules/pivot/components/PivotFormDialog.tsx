@@ -163,6 +163,21 @@ export const PivotFormDialog = ({
             <p className="text-xs text-muted-foreground">
               Coordenadas são opcionais; informe latitude e longitude juntas.
             </p>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="pivot-pressure-ref">
+                Pressão de referência (bar)
+              </Label>
+              <Input
+                id="pivot-pressure-ref"
+                inputMode="decimal"
+                placeholder="Opcional. Ex.: 3,5"
+                className="h-11 rounded-xl"
+                aria-invalid={Boolean(errors.pressure_ref)}
+                {...form.register("pressure_ref")}
+              />
+              <FieldError message={errors.pressure_ref?.message} />
+            </div>
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">

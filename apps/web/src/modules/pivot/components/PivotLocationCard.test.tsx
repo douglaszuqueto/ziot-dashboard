@@ -52,6 +52,7 @@ const pivot: Pivot = {
   device_id: null,
   latitude: -20.302609,
   longitude: -48.309418,
+  pressure_ref: null,
   created_at: "2026-09-01T10:00:00Z",
   updated_at: "2026-09-02T10:00:00Z",
 };

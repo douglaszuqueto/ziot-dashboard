@@ -21,6 +21,11 @@ import {
 } from "@/modules/pivot/hooks/use-pivot-commands";
 import { isNotFound } from "@/modules/pivot/lib/api-fallback";
 import {
+  formatCommandError,
+  NO_LINKED_DEVICE_ERROR,
+} from "@/modules/pivot/lib/pivot-commands";
+import {
+  type PivotCommandAck,
   type PivotCommandDirection,
   type PivotCommandMode,
   pivotManualCommandSchema,
@@ -31,6 +36,18 @@ export const COMMANDS_UNAVAILABLE_MESSAGE =
   "Comandos ainda não disponíveis no backend";
 export const START_VALIDATION_MESSAGE =
   "Selecione direção e modo para iniciar.";
+export const NO_LINKED_DEVICE_MESSAGE =
+  "Pivô sem dispositivo vinculado; comando ficou pendente";
+
+// 202 com `status: "pending"` e `error`: o comando foi guardado mas não
+// chegou a ser publicado (ex.: pivô sem dispositivo vinculado).
+export const pendingCommandWarning = (ack: PivotCommandAck) => {
+  if (!ack?.error) return null;
+  if (ack.error.trim().toLowerCase() === NO_LINKED_DEVICE_ERROR) {
+    return NO_LINKED_DEVICE_MESSAGE;
+  }
+  return `Comando ficou pendente: ${formatCommandError(ack.error)}`;
+};
 
 const commandErrorMessage = (error: unknown) =>
   isNotFound(error)
@@ -55,10 +72,15 @@ export const PivotCommandsCard = ({ pivotId }: { pivotId: string }) => {
 
   const send = async (
     successMessage: string,
-    request: () => Promise<unknown>,
+    request: () => Promise<PivotCommandAck>,
   ) => {
     try {
-      await request();
+      const ack = await request();
+      const warning = pendingCommandWarning(ack);
+      if (warning) {
+        toast.warning(warning);
+        return;
+      }
       toast.success(successMessage);
     } catch (error) {
       toast.error(commandErrorMessage(error));
