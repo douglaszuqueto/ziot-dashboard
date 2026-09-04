@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Cloudflare Workers Builds still runs deploy from the repo root unless
+  // Root Directory is set. Keep this file so `npx wrangler versions upload`
+  // finds assets after `pnpm build` writes apps/web/dist.
+  // Local/dev deploy from apps/web uses apps/web/wrangler.jsonc + Vite plugin.
+  "name": "vizeos-dashboard",
+  "compatibility_date": "2026-06-12",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "./apps/web/dist",
+    "not_found_handling": "single-page-application"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

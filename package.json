@@ -1,0 +1,24 @@
+{
+  "name": "vizeos-frontend",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.24.0",
+  "scripts": {
+    "preinstall": "node -e \"const ua=process.env.npm_config_user_agent||''; if (!ua.startsWith('pnpm/')) { console.error('Use pnpm install.'); process.exit(1); }\"",
+    "dev": "pnpm --filter vizeos-dashboard dev --port 8082",
+    "dev:admin": "pnpm --filter vizeos-admin dev --port 8083",
+    "build": "pnpm --filter vizeos-dashboard build",
+    "build:admin": "pnpm --filter vizeos-admin build",
+    "build:all": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "pnpm -r format",
+    "test": "pnpm -r test",
+    "preview": "pnpm --filter vizeos-dashboard preview",
+    "preview:admin": "pnpm --filter vizeos-admin preview",
+    "deploy": "pnpm --filter vizeos-dashboard deploy",
+    "deploy:admin": "pnpm --filter vizeos-admin deploy",
+    "deploy:preview": "pnpm --filter vizeos-dashboard exec wrangler versions upload",
+    "deploy:preview:admin": "pnpm --filter vizeos-admin exec wrangler versions upload"
+  }
+}

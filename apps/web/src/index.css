@@ -1,0 +1,214 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+/* Os componentes compartilhados são consumidos como fonte: sem isto o Tailwind
+   não escaneia o pacote e as classes usadas só lá dentro (estados do Switch,
+   Checkbox, Slider...) não são geradas — o componente renderiza sem estilo de
+   estado, parecendo sempre desligado. */
+@source "../../../packages/ui/src";
+
+/* HortiShop Design System — inspired by Farm24
+   Off-white surfaces, deep green frame, vibrant green accents,
+   mustard highlights, coral alerts. All colors HSL.
+*/
+
+@theme inline {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-frame: hsl(var(--frame));
+  --color-frame-foreground: hsl(var(--frame-foreground));
+  --color-status: hsl(var(--status));
+  --color-status-foreground: hsl(var(--status-foreground));
+  --color-alert: hsl(var(--alert));
+  --color-alert-foreground: hsl(var(--alert-foreground));
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+
+    to {
+      height: 0;
+    }
+  }
+}
+
+@layer base {
+  :root {
+    /* Surfaces */
+    --background: 80 33% 96%;          /* off-white #F4F5EE-ish */
+    --foreground: 155 35% 12%;         /* deep forest text */
+
+    --card: 0 0% 100%;
+    --card-foreground: 155 35% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 155 35% 12%;
+
+    /* Brand greens */
+    --primary: 141 76% 34%;            /* HortiShop #159846 */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 142 65% 55%;
+
+    --frame: 158 45% 14%;              /* deep forest (sidebar/header bg) */
+    --frame-foreground: 80 33% 96%;
+
+    /* Secondary / accents */
+    --secondary: 80 25% 92%;
+    --secondary-foreground: 155 35% 12%;
+
+    --muted: 80 20% 90%;
+    --muted-foreground: 155 12% 38%;
+
+    --accent: 45 90% 55%;              /* mustard / sun yellow */
+    --accent-foreground: 155 35% 12%;
+
+    --alert: 8 78% 64%;                /* coral red for alerts */
+    --alert-foreground: 0 0% 100%;
+    --status: 141 76% 34%;             /* operational status stays green across brands */
+    --status-foreground: 0 0% 100%;
+
+    --destructive: 8 78% 58%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 80 15% 86%;
+    --input: 80 15% 86%;
+    --ring: 141 76% 34%;
+
+    --radius: 1.25rem;
+
+    /* Gradients & shadows */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-frame: linear-gradient(180deg, hsl(var(--frame)), hsl(158 50% 10%));
+    --shadow-card: 0 4px 24px -8px hsl(155 35% 12% / 0.08);
+    --shadow-elevated: 0 10px 40px -12px hsl(155 35% 12% / 0.18);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 158 45% 14%;
+    --sidebar-foreground: 80 33% 96%;
+    --sidebar-primary: 141 76% 34%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 158 40% 20%;
+    --sidebar-accent-foreground: 80 33% 96%;
+    --sidebar-border: 158 40% 20%;
+    --sidebar-ring: 141 76% 34%;
+  }
+
+  :root[data-brand="vizeos"] {
+    --primary: 204 100% 35%;           /* Vizeos #006BB3 */
+    --primary-glow: 204 100% 48%;
+    --ring: 204 100% 35%;
+
+    --frame: 210 62% 16%;
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-frame: linear-gradient(180deg, hsl(var(--frame)), hsl(210 70% 10%));
+
+    --sidebar-background: 210 62% 16%;
+    --sidebar-primary: 204 100% 35%;
+    --sidebar-accent: 210 55% 22%;
+    --sidebar-border: 210 55% 22%;
+    --sidebar-ring: 204 100% 35%;
+  }
+
+  .dark {
+    --background: 158 40% 8%;
+    --foreground: 80 33% 96%;
+
+    --card: 158 35% 12%;
+    --card-foreground: 80 33% 96%;
+
+    --popover: 158 35% 12%;
+    --popover-foreground: 80 33% 96%;
+
+    --primary: 142 60% 50%;
+    --primary-foreground: 158 45% 10%;
+    --primary-glow: 142 70% 60%;
+
+    --frame: 158 50% 6%;
+    --frame-foreground: 80 33% 96%;
+
+    --secondary: 158 30% 18%;
+    --secondary-foreground: 80 33% 96%;
+
+    --muted: 158 25% 16%;
+    --muted-foreground: 80 15% 65%;
+
+    --accent: 45 90% 60%;
+    --accent-foreground: 158 45% 10%;
+
+    --alert: 8 78% 64%;
+    --alert-foreground: 0 0% 100%;
+    --status: 142 60% 50%;
+    --status-foreground: 158 45% 10%;
+
+    --destructive: 8 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 158 30% 18%;
+    --input: 158 30% 18%;
+    --ring: 142 60% 50%;
+  }
+
+  .dark[data-brand="vizeos"] {
+    --primary: 204 100% 48%;
+    --primary-foreground: 210 70% 10%;
+    --primary-glow: 204 100% 60%;
+    --ring: 204 100% 48%;
+
+    --frame: 210 70% 8%;
+    --sidebar-background: 210 70% 8%;
+    --sidebar-primary: 204 100% 48%;
+    --sidebar-accent: 210 55% 18%;
+    --sidebar-border: 210 55% 18%;
+    --sidebar-ring: 204 100% 48%;
+  }
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "cv11";
+  }
+}
