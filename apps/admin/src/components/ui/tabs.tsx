@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/tabs";
+export * from "@ziot/ui/tabs";

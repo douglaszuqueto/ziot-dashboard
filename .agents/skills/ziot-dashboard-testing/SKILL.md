@@ -1,5 +1,5 @@
 ---
-name: vizeos-dashboard-testing
+name: ziot-dashboard-testing
 description: Test Field Connect Hub changes with Biome, Vite build, Vitest, and manual route smoke.
 ---
 

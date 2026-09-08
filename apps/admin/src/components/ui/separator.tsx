@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/separator";
+export * from "@ziot/ui/separator";

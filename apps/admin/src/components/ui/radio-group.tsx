@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/radio-group";
+export * from "@ziot/ui/radio-group";

@@ -1,5 +1,5 @@
 ---
-name: vizeos-dashboard-feature
+name: ziot-dashboard-feature
 description: Add or review Field Connect Hub dashboard features while preserving approved design system.
 ---
 

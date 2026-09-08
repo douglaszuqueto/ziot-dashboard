@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/aspect-ratio";
+export * from "@ziot/ui/aspect-ratio";

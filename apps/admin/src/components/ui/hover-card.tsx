@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/hover-card";
+export * from "@ziot/ui/hover-card";

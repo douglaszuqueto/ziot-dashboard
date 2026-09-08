@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/popover";
+export * from "@ziot/ui/popover";

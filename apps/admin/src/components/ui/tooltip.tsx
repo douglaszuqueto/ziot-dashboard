@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/tooltip";
+export * from "@ziot/ui/tooltip";

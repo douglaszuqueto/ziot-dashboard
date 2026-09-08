@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/alert";
+export * from "@ziot/ui/alert";

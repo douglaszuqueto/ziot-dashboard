@@ -1,1 +1,1 @@
-export { ApiError, isUnauthorizedError } from "@vizeos/api-client";
+export { ApiError, isUnauthorizedError } from "@ziot/api-client";
