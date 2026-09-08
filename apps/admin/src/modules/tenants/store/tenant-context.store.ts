@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-const STORAGE_KEY = "vizeos-admin:tenant-context";
+const STORAGE_KEY = "ziot-admin:tenant-context";
 
 const readStoredTenantId = () => {
   if (typeof window === "undefined") {

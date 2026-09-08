@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   VITE_API_BASE_URL: z.string().min(1).default("/api"),
-  VITE_APP_BRAND: z.enum(["hortishop", "vizeos"]).default("vizeos"),
+  VITE_APP_BRAND: z.enum(["ziot"]).default("ziot"),
   // Opcional: sem chave, os cartões de mapa mostram um placeholder.
   VITE_GOOGLE_MAPS_API_KEY: z.string().default(""),
 });
@@ -34,7 +34,8 @@ const resolveApiBaseUrl = () => {
 
 export const env = envSchema.parse({
   VITE_API_BASE_URL: resolveApiBaseUrl(),
-  VITE_APP_BRAND:
-    import.meta.env.VITE_APP_BRAND === "hortishop" ? "hortishop" : "vizeos",
+  // Só existe a marca Ziot: qualquer valor no .env (inclusive um antigo de
+  // outra marca) resolve para ela em vez de derrubar o app na validação.
+  VITE_APP_BRAND: "ziot",
   VITE_GOOGLE_MAPS_API_KEY: import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? "",
 });

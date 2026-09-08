@@ -56,7 +56,7 @@ export const LoginPage = () => {
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div className="leading-tight">
-            <p className="text-lg font-semibold">Vizeos Admin</p>
+            <p className="text-lg font-semibold">Ziot Admin</p>
             <p className="text-[11px] uppercase tracking-[0.18em] text-frame-foreground/60">
               Platform Console
             </p>
@@ -65,7 +65,7 @@ export const LoginPage = () => {
 
         <div className="relative z-10 max-w-md space-y-5">
           <h1 className="text-4xl font-semibold leading-tight tracking-tight">
-            Operação administrativa da plataforma Vizeos.
+            Operação administrativa da plataforma Ziot.
           </h1>
           <p className="text-base text-frame-foreground/70">
             Gerencie clientes, tenants, usuários, inventário e saúde dos devices
@@ -74,7 +74,7 @@ export const LoginPage = () => {
         </div>
 
         <p className="relative z-10 text-xs text-frame-foreground/50">
-          © {new Date().getFullYear()} Vizeos.
+          © {new Date().getFullYear()} Ziot.
         </p>
       </div>
 
@@ -84,7 +84,7 @@ export const LoginPage = () => {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <ShieldCheck className="h-5 w-5" />
             </div>
-            <p className="text-base font-semibold">Vizeos Admin</p>
+            <p className="text-base font-semibold">Ziot Admin</p>
           </div>
 
           <div className="space-y-2">
@@ -107,7 +107,7 @@ export const LoginPage = () => {
                 <Input
                   id="login"
                   autoComplete="username"
-                  placeholder="admin@vizeos.com"
+                  placeholder="admin@ziot.com"
                   className="h-12 rounded-xl pl-10"
                   {...form.register("login")}
                 />

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { useLoginMutation } from "@/modules/auth/hooks/use-auth";
 import { ApiError } from "@/shared/api/error";
 import { brandConfig } from "@/shared/brand";
@@ -65,15 +64,7 @@ export const LoginPage = () => {
         />
 
         <div className="relative z-10 flex items-center gap-3">
-          <BrandLogo
-            tone="dark"
-            className={cn(
-              "w-auto",
-              brandConfig.key === "hortishop"
-                ? "h-12 max-w-[220px]"
-                : "h-8 max-w-[150px]",
-            )}
-          />
+          <BrandLogo tone="dark" className="h-10 w-auto max-w-[180px]" />
           <div className="leading-tight">
             <p className="text-[11px] uppercase tracking-[0.18em] text-frame-foreground/60">
               {brandConfig.tagline}
@@ -118,15 +109,7 @@ export const LoginPage = () => {
         <div className="w-full max-w-md space-y-8">
           <div className="flex items-center gap-2 lg:hidden">
             <div className="flex h-10 items-center justify-center">
-              <BrandLogo
-                tone="light"
-                className={cn(
-                  "w-auto",
-                  brandConfig.key === "hortishop"
-                    ? "h-8 max-w-[150px]"
-                    : "h-6 max-w-[120px]",
-                )}
-              />
+              <BrandLogo tone="light" className="h-7 w-auto max-w-[120px]" />
             </div>
           </div>
 

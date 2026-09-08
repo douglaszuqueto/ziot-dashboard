@@ -1,54 +1,31 @@
 import { env } from "@/shared/config/env";
 
+// Uma marca por build (VITE_APP_BRAND). Hoje só existe a Ziot; a estrutura por
+// chave fica para permitir white-label no futuro sem tocar nos componentes.
 const brandByKey = {
-  hortishop: {
-    key: "hortishop",
-    name: "HortiShop",
+  ziot: {
+    key: "ziot",
+    name: "Ziot",
     tagline: "IoT Platform",
-    documentTitle: "HortiShop · Plataforma IoT para campo conectado",
+    documentTitle: "Ziot · Plataforma IoT para o campo",
     description:
-      "Monitore sensores, dispositivos e estações em tempo real com a plataforma HortiShop.",
-    loginTitle: "Cultive com inteligência.",
-    loginHighlight: "Monitore em tempo real.",
-    loginDescription:
-      "Acompanhe sensores, dispositivos e alertas em uma única plataforma operacional.",
-    loginHelp: "Acesse sua conta para continuar monitorando sua operação.",
-    assets: {
-      logoWhite: "/brands/hortishop-logo-white.png",
-      logoColor: "/brands/hortishop-logo-color.png",
-      iconWhite: "/brands/hortishop-icon-white.png",
-      iconColor: "/brands/hortishop-icon-color.png",
-      favicon: "/brands/hortishop-icon-color.png",
-    },
-    pwa: {
-      manifest: "/manifest-hortishop.webmanifest",
-      appleTouchIcon: "/brands/hortishop-apple-touch-180.png",
-      themeColor: "#143428",
-    },
-  },
-  vizeos: {
-    key: "vizeos",
-    name: "Vizeos",
-    tagline: "IoT Platform",
-    documentTitle: "Vizeos · Plataforma IoT para campo conectado",
-    description:
-      "Monitore sensores, dispositivos e operação em campo com a plataforma Vizeos.",
+      "Monitore e comande pivôs, irrigação e operação em campo com a plataforma Ziot.",
     loginTitle: "Gestão IoT para operação em campo.",
     loginHighlight: "Decida com dados.",
     loginDescription:
-      "Monitore sensores, dispositivos e operação em uma única plataforma.",
+      "Monitore pivôs, dispositivos e operação em uma única plataforma.",
     loginHelp: "Acesse sua conta para continuar acompanhando sua operação.",
     assets: {
-      logoWhite: "/brands/vizeos-logo-white.png",
-      logoColor: "/brands/vizeos-logo-color.png",
-      iconWhite: "/brands/vizeos-icon-white.png",
-      iconColor: "/brands/vizeos-icon-color.png",
-      favicon: "/brands/vizeos-icon-color.png",
+      logoWhite: "/brands/ziot-logo-white.png",
+      logoColor: "/brands/ziot-logo-color.png",
+      iconWhite: "/brands/ziot-icon-white.png",
+      iconColor: "/brands/ziot-icon-color.png",
+      favicon: "/brands/ziot-icon-color.png",
     },
     pwa: {
-      manifest: "/manifest-vizeos.webmanifest",
-      appleTouchIcon: "/brands/vizeos-apple-touch-180.png",
-      themeColor: "#0F2942",
+      manifest: "/manifest-ziot.webmanifest",
+      appleTouchIcon: "/brands/ziot-apple-touch-180.png",
+      themeColor: "#102860",
     },
   },
 } as const;

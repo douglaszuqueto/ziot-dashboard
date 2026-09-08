@@ -1,6 +1,6 @@
 # Field Connect Hub
 
-Dashboard React para operação final do cliente Vizeos.
+Dashboard React para operação final do cliente Ziot.
 
 ## Stack
 
@@ -49,11 +49,12 @@ Criar `.env` baseado em `.env.example`.
 ```bash
 VITE_API_BASE_URL=/api
 VITE_API_PROXY_TARGET=http://localhost:8080
-VITE_APP_BRAND=vizeos
+VITE_APP_BRAND=ziot
 ```
 
-`VITE_APP_BRAND` é definido no build e aceita `hortishop` (padrão, verde
-`#159846`) ou `vizeos` (azul `#006BB3`).
+`VITE_APP_BRAND` é definido no build; hoje só existe `ziot` (azul `#006BB3`,
+logo em `public/brands/ziot-*`). A estrutura por chave em
+`src/shared/brand.ts` permite outras marcas no futuro.
 
 ## Estrutura
 

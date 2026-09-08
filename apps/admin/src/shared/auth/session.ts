@@ -5,7 +5,7 @@ export interface AuthSessionSnapshot {
   expiresAt?: string;
 }
 
-const SESSION_KEY = "vizeos-admin.auth";
+const SESSION_KEY = "ziot-admin.auth";
 
 const storages = {
   local: () => window.localStorage,
