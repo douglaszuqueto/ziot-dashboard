@@ -5,17 +5,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLogout } from "@/modules/auth/hooks/use-auth";
 import { useAuthStore } from "@/modules/auth/store/auth.store";
 import { getInitials } from "@/shared/lib/format";
+import { paletteOptions, usePalette } from "@/shared/theme/palette";
 
 export const UserMenu = () => {
   const logout = useLogout();
   const user = useAuthStore((state) => state.user);
   const tenant = useAuthStore((state) => state.tenant);
+  const { palette, setPalette } = usePalette();
 
   return (
     <DropdownMenu>
@@ -43,6 +47,21 @@ export const UserMenu = () => {
             {tenant?.name ?? "Sem tenant"}
           </p>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {/* Troca de paleta em runtime, persistida por navegador (ver shared/theme/palette.ts). */}
+        <DropdownMenuLabel className="text-[11px] font-normal uppercase tracking-wider text-muted-foreground">
+          Paleta
+        </DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={palette}
+          onValueChange={(value) => setPalette(value)}
+        >
+          {paletteOptions.map((option) => (
+            <DropdownMenuRadioItem key={option.key} value={option.key}>
+              {option.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={logout}
