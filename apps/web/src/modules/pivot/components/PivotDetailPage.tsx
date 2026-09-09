@@ -12,7 +12,6 @@ import {
   PivotCharts,
 } from "@/modules/pivot/components/PivotCharts";
 import { PivotCommandsCard } from "@/modules/pivot/components/PivotCommandsCard";
-import { PivotFormDialog } from "@/modules/pivot/components/PivotFormDialog";
 import { PivotHistoryCard } from "@/modules/pivot/components/PivotHistoryCard";
 import { PivotOverview } from "@/modules/pivot/components/PivotOverview";
 import { PivotStatusBadge } from "@/modules/pivot/components/PivotStatusBadge";
@@ -60,7 +59,6 @@ export const PivotDetailPage = () => {
   const permissions = useAuthStore((state) => state.permissions);
   const canWrite = hasAccess(permissions, "pivot.write");
   const canCommand = hasAccess(permissions, "pivot.command");
-  const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   // Série real (GET /v1/pivots/{id}/history?hours=24) quando existir; senão o
   // eixo vazio das últimas 24h para manter eixos e legenda visíveis.
@@ -149,13 +147,14 @@ export const PivotDetailPage = () => {
           <div className="flex flex-wrap gap-2">
             {canWrite ? (
               <Button
-                type="button"
+                asChild
                 variant="secondary"
                 className="h-11 rounded-xl px-5 text-sm font-medium"
-                onClick={() => setEditing(true)}
               >
-                <Pencil className="h-4 w-4" />
-                Editar
+                <Link to={`/pivos/${pivot.id}/editar`}>
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </Link>
               </Button>
             ) : null}
             <Button
@@ -195,18 +194,11 @@ export const PivotDetailPage = () => {
       <PivotHistoryCard pivotId={pivot.id} />
 
       {canWrite ? (
-        <>
-          <PivotFormDialog
-            open={editing}
-            pivot={pivot}
-            onOpenChange={setEditing}
-          />
-          <DeletePivotDialog
-            pivot={deleting ? pivot : null}
-            onOpenChange={setDeleting}
-            onDeleted={() => navigate("/pivos", { replace: true })}
-          />
-        </>
+        <DeletePivotDialog
+          pivot={deleting ? pivot : null}
+          onOpenChange={setDeleting}
+          onDeleted={() => navigate("/pivos", { replace: true })}
+        />
       ) : null}
     </AppShell>
   );

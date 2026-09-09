@@ -16,6 +16,7 @@ const Login = lazy(() => import("@/pages/Login"));
 const Index = lazy(() => import("@/pages/Index"));
 const Pivots = lazy(() => import("@/pages/Pivots"));
 const PivotDetail = lazy(() => import("@/pages/PivotDetail"));
+const PivotEditor = lazy(() => import("@/pages/PivotEditor"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const FullScreenFallback = () => (
@@ -160,6 +161,32 @@ export const AppRouter = () => (
                 requiredPermission="pivot.read"
               >
                 <Pivots />
+              </ProtectedLazyRoute>
+            }
+          />
+          <Route
+            path="/pivos/novo"
+            element={
+              <ProtectedLazyRoute
+                title="Novo pivô"
+                loadingVariant="detail"
+                requiredModule="pivot"
+                requiredPermission="pivot.write"
+              >
+                <PivotEditor />
+              </ProtectedLazyRoute>
+            }
+          />
+          <Route
+            path="/pivos/:id/editar"
+            element={
+              <ProtectedLazyRoute
+                title="Editar pivô"
+                loadingVariant="detail"
+                requiredModule="pivot"
+                requiredPermission="pivot.write"
+              >
+                <PivotEditor />
               </ProtectedLazyRoute>
             }
           />
