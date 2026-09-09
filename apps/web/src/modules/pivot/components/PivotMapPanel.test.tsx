@@ -138,10 +138,12 @@ describe("PivotMapPanel", () => {
       "hybrid",
     );
     expect(screen.getByTestId("google-map")).toHaveAttribute("data-zoom", "15");
+    // Sem raio, só o centro é marcado.
     expect(screen.getByTestId("map-marker")).toHaveAttribute(
       "title",
       "Pivô 01",
     );
+    expect(screen.getByTestId("map-center")).toBeInTheDocument();
     expect(screen.getByText("-20,3026 · -48,3094")).toBeInTheDocument();
     expect(screen.queryByText(/Configure/)).toBeNull();
   });
@@ -208,14 +210,16 @@ describe("PivotMapPanel", () => {
       />,
     );
 
-    // Chip da legenda + rótulo sobre o mapa.
+    // Chip da legenda + rótulo sobre o mapa; com raio, o centro é parte do
+    // desenho e não vira marcador.
     expect(screen.getAllByText("Carreador")).toHaveLength(2);
     expect(screen.getByTestId("map-road-label")).toBeInTheDocument();
     expect(screen.getByTestId("map-road-pin")).toBeInTheDocument();
-    expect(screen.getAllByTestId("map-marker")).toHaveLength(3);
+    expect(screen.getAllByTestId("map-marker")).toHaveLength(2);
+    expect(screen.queryByTestId("map-center")).toBeNull();
   });
 
-  it("desenha as torres no braço e avisa que o zero do ângulo está no carreador", () => {
+  it("avisa que o zero do ângulo está no carreador", () => {
     env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
 
     const { rerender } = render(
@@ -231,11 +235,10 @@ describe("PivotMapPanel", () => {
       />,
     );
 
-    expect(screen.getAllByTestId("map-tower")).toHaveLength(3);
     expect(screen.getByText("Pivô parado")).toBeInTheDocument();
     expect(screen.getByText(/zero no carreador, 180°/)).toBeInTheDocument();
 
-    // Sem ângulo na telemetria não há braço nem torres, só campo e carreador.
+    // Sem ângulo na telemetria a legenda não cita o zero; o carreador segue.
     rerender(
       <PivotMapPanel
         pivot={{
@@ -248,7 +251,6 @@ describe("PivotMapPanel", () => {
         state={{ running: false }}
       />,
     );
-    expect(screen.queryByTestId("map-tower")).toBeNull();
     expect(screen.getByTestId("map-road-label")).toBeInTheDocument();
     expect(screen.queryByText(/zero no carreador/)).toBeNull();
   });

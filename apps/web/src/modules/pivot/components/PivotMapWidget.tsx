@@ -3,14 +3,17 @@ import {
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import { MapPin, RadioTower } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { MapPin } from "lucide-react";
+import { useId, useMemo } from "react";
+import {
+  MAP_FIELD_PALETTE,
+  PivotFieldDrawing,
+} from "@/modules/pivot/components/PivotFieldDrawing";
+import { PivotFieldOverlay } from "@/modules/pivot/components/PivotFieldOverlay";
 import {
   destinationPoint,
   type LatLng,
   pivotBearing,
-  sectorPath,
-  towerPoints,
 } from "@/modules/pivot/lib/pivot-geometry";
 import {
   type PivotArmStatus,
@@ -29,8 +32,6 @@ export const MAP_COLORS = {
   road: "#e5e7eb",
   // Azul primário da marca com opacidade baixa para o campo irrigado.
   field: "#006bb3",
-  // Parte não irrigada do círculo nos pivôs "meia-lua".
-  fieldOutside: "#0b1220",
 } as const;
 
 export const ARM_COLORS: Record<PivotArmStatus, string> = {
@@ -40,78 +41,6 @@ export const ARM_COLORS: Record<PivotArmStatus, string> = {
   security: MAP_COLORS.security,
 };
 
-const NO_CLICK = { clickable: false } as const;
-
-type MapsLibrary = google.maps.MapsLibrary;
-
-interface OverlayLike<Options> {
-  setMap(map: google.maps.Map | null): void;
-  setOptions(options: Options): void;
-}
-
-// Overlay imperativo do Google Maps ligado ao ciclo de vida do React: cria
-// uma vez, aplica novas opções quando mudam, esconde com `options === null`
-// e remove do mapa ao desmontar. `create` deve ser estável (memoizado por
-// `maps`), e `options` memoizado pelo chamador.
-const useOverlay = <
-  Options extends object,
-  Overlay extends OverlayLike<Options>,
->(
-  map: google.maps.Map | null,
-  create: ((options: Options) => Overlay) | null,
-  options: Options | null,
-) => {
-  const overlayRef = useRef<Overlay | null>(null);
-
-  useEffect(() => {
-    if (!map || !create || !options) {
-      overlayRef.current?.setMap(null);
-      return;
-    }
-    if (!overlayRef.current) {
-      overlayRef.current = create(options);
-    } else {
-      overlayRef.current.setOptions(options);
-    }
-    overlayRef.current.setMap(map);
-  }, [map, create, options]);
-
-  useEffect(
-    () => () => {
-      overlayRef.current?.setMap(null);
-      overlayRef.current = null;
-    },
-    [],
-  );
-};
-
-const useCircleFactory = (maps: MapsLibrary | null) =>
-  useMemo(
-    () =>
-      maps
-        ? (options: google.maps.CircleOptions) => new maps.Circle(options)
-        : null,
-    [maps],
-  );
-
-const usePolygonFactory = (maps: MapsLibrary | null) =>
-  useMemo(
-    () =>
-      maps
-        ? (options: google.maps.PolygonOptions) => new maps.Polygon(options)
-        : null,
-    [maps],
-  );
-
-const usePolylineFactory = (maps: MapsLibrary | null) =>
-  useMemo(
-    () =>
-      maps
-        ? (options: google.maps.PolylineOptions) => new maps.Polyline(options)
-        : null,
-    [maps],
-  );
-
 export const pivotCenter = (
   pivot: Pick<Pivot, "latitude" | "longitude">,
 ): LatLng | null =>
@@ -119,11 +48,12 @@ export const pivotCenter = (
     ? { lat: pivot.latitude, lng: pivot.longitude }
     : null;
 
-// Camadas do pivô dentro do `<Map>` do cartão de localização: campo (círculo
-// ou setor), braço colorido pelo estado com as torres, carreador e o
-// marcador central. Sem `radius_m` só o centro é desenhado; sem ângulo na
-// telemetria, campo e carreador ficam sem o braço. Em testes (`useMap()` e
-// `useMapsLibrary()` nulos) os overlays imperativos não são criados.
+// Pivô desenhado sobre o mapa: o mesmo desenho estilizado da ilustração
+// (`PivotFieldDrawing`) ancorado aos limites reais do campo por
+// `PivotFieldOverlay`, mais os marcadores do carreador. Sem `radius_m` só o
+// centro é marcado; sem ângulo na telemetria, campo e carreador ficam sem o
+// braço. Em testes (`useMap()` e `useMapsLibrary()` nulos) a camada
+// geográfica não é criada.
 export const PivotMapWidget = ({
   pivot,
   state,
@@ -133,6 +63,7 @@ export const PivotMapWidget = ({
 }) => {
   const map = useMap();
   const maps = useMapsLibrary("maps");
+  const titleId = useId();
   const {
     latitude,
     longitude,
@@ -145,10 +76,11 @@ export const PivotMapWidget = ({
     sweep_end_angle: sweepEnd,
   } = pivot;
   const bearing = pivotBearing(pivot, state?.angle);
-  const armColor = ARM_COLORS[pivotArmStatus(state)];
+  const status = pivotArmStatus(state);
+  const armColor = ARM_COLORS[status];
 
-  // Valores memoizados por coordenada para que os `useEffect` dos overlays
-  // só rodem quando algo realmente mudou.
+  // Memoizado por coordenada para o overlay só ser recriado quando o centro
+  // realmente muda.
   const center = useMemo<LatLng | null>(
     () =>
       latitude !== null && longitude !== null
@@ -157,68 +89,13 @@ export const PivotMapWidget = ({
     [latitude, longitude],
   );
 
-  // Campo: círculo cheio no giro completo; nos pivôs "meia-lua" o círculo
-  // vira o fundo escurecido e o setor irrigado é um polígono por cima.
-  const circleOptions = useMemo<google.maps.CircleOptions | null>(() => {
-    if (!center || radius === null) return null;
-    const hasSweep = sweepStart !== null && sweepEnd !== null;
-    return hasSweep
-      ? {
-          ...NO_CLICK,
-          center,
-          radius,
-          fillColor: MAP_COLORS.fieldOutside,
-          fillOpacity: 0.3,
-          strokeColor: MAP_COLORS.field,
-          strokeOpacity: 0.55,
-          strokeWeight: 1.5,
-          zIndex: 1,
-        }
-      : {
-          ...NO_CLICK,
-          center,
-          radius,
-          fillColor: MAP_COLORS.field,
-          fillOpacity: 0.22,
-          strokeColor: MAP_COLORS.field,
-          strokeOpacity: 0.9,
-          strokeWeight: 2,
-          zIndex: 1,
-        };
-  }, [center, radius, sweepStart, sweepEnd]);
-
-  const sectorOptions = useMemo<google.maps.PolygonOptions | null>(() => {
-    if (
-      !center ||
-      radius === null ||
-      sweepStart === null ||
-      sweepEnd === null
-    ) {
-      return null;
-    }
-    return {
-      ...NO_CLICK,
-      paths: sectorPath(center, radius, sweepStart, sweepEnd),
-      fillColor: MAP_COLORS.field,
-      fillOpacity: 0.28,
-      strokeColor: MAP_COLORS.field,
-      strokeOpacity: 0.9,
-      strokeWeight: 2,
-      zIndex: 2,
-    };
-  }, [center, radius, sweepStart, sweepEnd]);
-
-  const armOptions = useMemo<google.maps.PolylineOptions | null>(() => {
-    if (!center || radius === null || bearing === null) return null;
-    return {
-      ...NO_CLICK,
-      path: [center, destinationPoint(center, radius, bearing)],
-      strokeColor: armColor,
-      strokeOpacity: 1,
-      strokeWeight: 4,
-      zIndex: 4,
-    };
-  }, [center, radius, bearing, armColor]);
+  const sweep = useMemo(
+    () =>
+      sweepStart !== null && sweepEnd !== null
+        ? { start: sweepStart, end: sweepEnd }
+        : null,
+    [sweepStart, sweepEnd],
+  );
 
   const roadEdge = useMemo(
     () =>
@@ -227,31 +104,6 @@ export const PivotMapWidget = ({
         : null,
     [center, radius, roadAngle],
   );
-
-  const roadOptions = useMemo<google.maps.PolylineOptions | null>(() => {
-    if (!center || !roadEdge) return null;
-    return {
-      ...NO_CLICK,
-      path: [center, roadEdge],
-      strokeColor: MAP_COLORS.road,
-      strokeOpacity: 0.95,
-      strokeWeight: 3,
-      zIndex: 3,
-    };
-  }, [center, roadEdge]);
-
-  const towers = useMemo(
-    () =>
-      center && radius !== null && bearing !== null && spans !== null
-        ? towerPoints(center, radius, bearing, spans)
-        : [],
-    [center, radius, bearing, spans],
-  );
-
-  useOverlay(map, useCircleFactory(maps), circleOptions);
-  useOverlay(map, usePolygonFactory(maps), sectorOptions);
-  useOverlay(map, usePolylineFactory(maps), roadOptions);
-  useOverlay(map, usePolylineFactory(maps), armOptions);
 
   if (!center) return null;
 
@@ -262,20 +114,36 @@ export const PivotMapWidget = ({
 
   return (
     <>
-      {towers.map((tower, index) => (
-        <AdvancedMarker
-          key={`${tower.lat},${tower.lng}`}
-          position={tower}
-          title={`Torre ${index + 1}`}
-          zIndex={5}
+      {radius !== null && map && maps ? (
+        <PivotFieldOverlay
+          map={map}
+          maps={maps}
+          center={center}
+          radiusM={radius}
         >
+          <PivotFieldDrawing
+            bearing={bearing}
+            spans={spans}
+            armColor={armColor}
+            drops={status === "water"}
+            sweep={sweep}
+            roadAngle={roadAngle}
+            palette={MAP_FIELD_PALETTE}
+            title={`${pivot.name} no mapa`}
+            titleId={titleId}
+            className="h-full w-full"
+          />
+        </PivotFieldOverlay>
+      ) : null}
+
+      {radius === null ? (
+        <AdvancedMarker position={center} title={pivot.name} zIndex={6}>
           <span
-            data-testid="map-tower"
-            className="block h-2.5 w-2.5 rounded-full border-2 border-white shadow"
-            style={{ backgroundColor: armColor }}
+            data-testid="map-center"
+            className="block h-4 w-4 rounded-full border-2 border-white bg-primary shadow"
           />
         </AdvancedMarker>
-      ))}
+      ) : null}
 
       {roadEdge ? (
         <AdvancedMarker position={roadEdge} title="Carreador" zIndex={4}>
@@ -302,12 +170,6 @@ export const PivotMapWidget = ({
           </span>
         </AdvancedMarker>
       ) : null}
-
-      <AdvancedMarker position={center} title={pivot.name} zIndex={6}>
-        <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-primary text-primary-foreground shadow-[var(--shadow-elevated)]">
-          <RadioTower className="h-4 w-4" />
-        </span>
-      </AdvancedMarker>
     </>
   );
 };

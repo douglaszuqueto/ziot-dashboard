@@ -124,6 +124,18 @@ export const PivotOverview = ({
                       // do contador acima continua sendo o ângulo do
                       // controlador.
                       angle={pivotBearing(pivot, state?.angle) ?? 40}
+                      spans={pivot.spans}
+                      roadAngle={pivot.road_angle}
+                      sweep={
+                        pivot.sweep_start_angle !== null &&
+                        pivot.sweep_end_angle !== null
+                          ? {
+                              start: pivot.sweep_start_angle,
+                              end: pivot.sweep_end_angle,
+                            }
+                          : null
+                      }
+                      drops={state?.running !== true || state.mode !== 1}
                     />
                   </div>
                   <p className="mt-3 text-center text-sm font-medium text-foreground">
