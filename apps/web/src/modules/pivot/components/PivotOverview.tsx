@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { PivotIllustration } from "@/modules/pivot/components/PivotIllustration";
 import { PivotMetricTile } from "@/modules/pivot/components/PivotMetricTile";
+import { pivotBearing } from "@/modules/pivot/lib/pivot-geometry";
 import {
   formatOperatingTime,
   formatPivotAngle,
@@ -107,7 +108,9 @@ export const PivotOverview = ({
           <div className="mt-5 flex min-h-32 items-center justify-center rounded-3xl border border-primary/15 bg-card/75 px-4 py-3">
             <PivotIllustration
               className="max-h-56"
-              angle={state?.angle ?? 40}
+              // Azimute (aplica a referência do carreador); o número do
+              // contador acima continua sendo o ângulo do controlador.
+              angle={pivotBearing(pivot, state?.angle) ?? 40}
             />
           </div>
           <p className="mt-3 text-center text-sm font-medium text-foreground">

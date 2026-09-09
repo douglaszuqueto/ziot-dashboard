@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PivotAngleGauge } from "@/modules/pivot/components/PivotAngleGauge";
 import { PivotStatusBadge } from "@/modules/pivot/components/PivotStatusBadge";
+import { pivotBearing } from "@/modules/pivot/lib/pivot-geometry";
 import {
   formatPivotDirection,
   formatPivotLastInput,
@@ -122,7 +123,11 @@ export const PivotCard = ({
           meta.highlightClassName,
         )}
       >
-        <PivotAngleGauge angle={state?.angle} size={72} />
+        <PivotAngleGauge
+          angle={state?.angle}
+          bearing={pivotBearing(pivot, state?.angle)}
+          size={72}
+        />
         <div className="min-w-0 flex-1">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">
             Percentímetro
