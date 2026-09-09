@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/resizable";
+export * from "@ziot/ui/resizable";

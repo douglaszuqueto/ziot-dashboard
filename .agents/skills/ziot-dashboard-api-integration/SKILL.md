@@ -1,5 +1,5 @@
 ---
-name: vizeos-dashboard-api-integration
+name: ziot-dashboard-api-integration
 description: Connect backend APIs to Field Connect Hub using Zod, React Query, shared HTTP, and existing auth/tenant state.
 ---
 

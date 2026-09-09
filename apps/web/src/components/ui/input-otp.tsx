@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/input-otp";
+export * from "@ziot/ui/input-otp";

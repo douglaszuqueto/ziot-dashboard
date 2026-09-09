@@ -7,8 +7,8 @@
    estado, parecendo sempre desligado. */
 @source "../../../packages/ui/src";
 
-/* Vizeos Admin Design System
-   Off-white surfaces, Vizeos blue brand actions, stable green status states,
+/* Ziot Admin Design System
+   Off-white surfaces, Ziot blue brand actions, stable green status states,
    mustard highlights, coral alerts. All colors HSL.
 */
 
@@ -86,11 +86,11 @@
     --popover-foreground: 155 35% 12%;
 
     /* Brand */
-    --primary: 204 100% 35%;           /* Vizeos #006BB3 */
+    --primary: 204 100% 35%;           /* Ziot azul #006BB3 */
     --primary-foreground: 0 0% 100%;
     --primary-glow: 204 88% 48%;
 
-    --frame: 214 62% 17%;              /* deep Vizeos navy */
+    --frame: 214 62% 17%;              /* deep Ziot navy */
     --frame-foreground: 80 33% 96%;
 
     --success: 142 75% 34%;            /* operational/status green */

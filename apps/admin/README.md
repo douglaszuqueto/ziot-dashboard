@@ -1,6 +1,6 @@
-# Vizeos Admin
+# Ziot Admin
 
-Frontend React para administração da plataforma Vizeos.
+Frontend React para administração da plataforma Ziot.
 
 ## Stack
 

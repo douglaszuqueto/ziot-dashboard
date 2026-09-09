@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/checkbox";
+export * from "@ziot/ui/checkbox";

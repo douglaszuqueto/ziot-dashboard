@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "vizeos-admin",
+  "name": "ziot-admin",
   "compatibility_date": "2026-06-12",
   "observability": {
     "enabled": true

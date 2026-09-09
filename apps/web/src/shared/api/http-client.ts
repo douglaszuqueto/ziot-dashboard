@@ -1,1 +1,1 @@
-export { httpRequest } from "@vizeos/api-client";
+export { httpRequest } from "@ziot/api-client";

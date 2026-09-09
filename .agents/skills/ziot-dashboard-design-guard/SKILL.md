@@ -1,5 +1,5 @@
 ---
-name: vizeos-dashboard-design-guard
+name: ziot-dashboard-design-guard
 description: Review dashboard visual changes for approved design-system preservation.
 ---
 

@@ -2,5 +2,5 @@
 /// <reference types="vite-plugin-pwa/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_APP_BRAND?: "hortishop" | "vizeos";
+  readonly VITE_APP_BRAND?: "ziot";
 }

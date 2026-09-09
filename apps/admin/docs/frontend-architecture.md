@@ -1,6 +1,6 @@
 # Arquitetura Frontend
 
-O `vizeos-admin` reaproveita a arquitetura modular do `field-connect-hub`, mas consome apenas o namespace administrativo `/v1/admin/*`.
+O `ziot-admin` reaproveita a arquitetura modular do `field-connect-hub`, mas consome apenas o namespace administrativo `/v1/admin/*`.
 
 ## Regras
 
@@ -34,7 +34,7 @@ Testes unitários devem cobrir regras sem depender de renderização quando poss
 
 ## Auth admin
 
-O app usa JWT com escopo admin e storage key `vizeos-admin.auth`.
+O app usa JWT com escopo admin e storage key `ziot-admin.auth`.
 
 Permissões esperadas:
 

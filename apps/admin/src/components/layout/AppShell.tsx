@@ -94,7 +94,7 @@ const resolveTitle = (pathname: string) => {
     return "Relatórios";
   }
   const match = navItems.find((item) => pathname.startsWith(item.to));
-  return match ? match.label : (titles.get(pathname) ?? "Vizeos Admin");
+  return match ? match.label : (titles.get(pathname) ?? "Ziot Admin");
 };
 
 const SideNav = () => {
@@ -104,8 +104,8 @@ const SideNav = () => {
     <nav className="flex h-full flex-col gap-1 overflow-y-auto p-4">
       <div className="mb-4 flex h-10 shrink-0 items-center justify-center px-2">
         <img
-          src="/brand/vizeos-wordmark-white.png"
-          alt="Vizeos Admin"
+          src="/brand/ziot-wordmark-white.png"
+          alt="Ziot Admin"
           className="h-7 w-auto"
         />
       </div>
@@ -193,10 +193,10 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
           <div className="flex items-center gap-2 lg:hidden">
             <img
               src="/favicon.png"
-              alt="Vizeos"
+              alt="Ziot"
               className="h-9 w-9 rounded-xl bg-white/10 p-1.5"
             />
-            <p className="text-sm font-semibold">Vizeos Admin</p>
+            <p className="text-sm font-semibold">Ziot Admin</p>
           </div>
 
           <div className="hidden lg:block">

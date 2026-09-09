@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/scroll-area";
+export * from "@ziot/ui/scroll-area";

@@ -4,7 +4,7 @@
   // Root Directory is set. Keep this file so `npx wrangler versions upload`
   // finds assets after `pnpm build` writes apps/web/dist.
   // Local/dev deploy from apps/web uses apps/web/wrangler.jsonc + Vite plugin.
-  "name": "vizeos-dashboard",
+  "name": "ziot-dashboard",
   "compatibility_date": "2026-06-12",
   "observability": {
     "enabled": true

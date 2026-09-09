@@ -13,7 +13,6 @@ import { hasAccess, hasModule } from "@/modules/auth/access";
 import { UserMenu } from "@/modules/auth/components/UserMenu";
 import { useAuthStore } from "@/modules/auth/store/auth.store";
 import { TenantSwitcher } from "@/modules/tenants/components/TenantSwitcher";
-import { brandConfig } from "@/shared/brand";
 import { BrandLogo } from "@/shared/components/BrandLogo";
 
 type NavChild = {
@@ -60,15 +59,7 @@ const SideNav = () => {
   return (
     <nav className="flex h-full flex-col gap-1 overflow-y-auto p-4">
       <div className="mb-6 flex shrink-0 items-center justify-center px-2">
-        <BrandLogo
-          tone="dark"
-          className={cn(
-            "w-auto",
-            brandConfig.key === "hortishop"
-              ? "h-9 max-w-[170px]"
-              : "h-7 max-w-[140px]",
-          )}
-        />
+        <BrandLogo tone="dark" className="h-8 w-auto max-w-[140px]" />
       </div>
       {navItems.map(
         ({ icon: Icon, label, to, disabled, module, permission, children }) => {
@@ -221,15 +212,7 @@ export const AppShell = ({
           </Sheet>
 
           <div className="flex items-center gap-2 lg:hidden">
-            <BrandLogo
-              tone="dark"
-              className={cn(
-                "w-auto",
-                brandConfig.key === "hortishop"
-                  ? "h-8 max-w-[132px]"
-                  : "h-6 max-w-[112px]",
-              )}
-            />
+            <BrandLogo tone="dark" className="h-7 w-auto max-w-[112px]" />
           </div>
 
           <div className="hidden lg:block">

@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 // Ilustração inline de um pivô central (vista de cima): campo circular, setor
 // irrigado, braço radial com torres e ponto central. Mesmo estilo suave da
-// ilustração de estufa do Vizeos, sem depender de imagem.
+// ilustração de estufa da base original, sem depender de imagem.
 export const PivotIllustration = ({
   className,
   angle = 40,

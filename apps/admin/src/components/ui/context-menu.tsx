@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/context-menu";
+export * from "@ziot/ui/context-menu";

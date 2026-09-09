@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/collapsible";
+export * from "@ziot/ui/collapsible";

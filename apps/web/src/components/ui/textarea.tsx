@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/textarea";
+export * from "@ziot/ui/textarea";

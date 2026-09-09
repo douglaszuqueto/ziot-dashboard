@@ -109,10 +109,10 @@ importers:
       '@vis.gl/react-google-maps':
         specifier: ^1.8.3
         version: 1.8.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@vizeos/api-client':
+      '@ziot/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@vizeos/ui':
+      '@ziot/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       class-variance-authority:
@@ -341,10 +341,10 @@ importers:
       '@vis.gl/react-google-maps':
         specifier: ^1.8.3
         version: 1.8.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@vizeos/api-client':
+      '@ziot/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@vizeos/ui':
+      '@ziot/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       class-variance-authority:

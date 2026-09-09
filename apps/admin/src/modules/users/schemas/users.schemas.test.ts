@@ -9,14 +9,14 @@ describe("user schemas", () => {
     const parsed = userCreateFormSchema.parse({
       tenant_id: "00000000-0000-4000-8000-000000000001",
       name: "Admin",
-      email: "ADMIN@VIZEOS.COM",
+      email: "ADMIN@ZIOT.COM",
       username: "ADMIN",
       password: "secret",
       role: "operator",
       status: "active",
     });
 
-    expect(parsed.email).toBe("admin@vizeos.com");
+    expect(parsed.email).toBe("admin@ziot.com");
     expect(parsed.username).toBe("admin");
   });
 

@@ -1,1 +1,1 @@
-export * from "@vizeos/ui/accordion";
+export * from "@ziot/ui/accordion";
