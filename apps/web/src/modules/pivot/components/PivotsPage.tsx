@@ -1,12 +1,12 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { hasAccess } from "@/modules/auth/access";
 import { useAuthStore } from "@/modules/auth/store/auth.store";
 import { DeletePivotDialog } from "@/modules/pivot/components/DeletePivotDialog";
 import { PivotCard } from "@/modules/pivot/components/PivotCard";
-import { PivotFormDialog } from "@/modules/pivot/components/PivotFormDialog";
 import { usePivotState } from "@/modules/pivot/hooks/use-pivot-state";
 import { usePivotsQuery } from "@/modules/pivot/hooks/use-pivots";
 import type { Pivot } from "@/modules/pivot/schemas/pivot.schemas";
@@ -31,19 +31,11 @@ export const PivotsPage = () => {
   const query = usePivotsQuery();
   const permissions = useAuthStore((state) => state.permissions);
   const canWrite = hasAccess(permissions, "pivot.write");
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<Pivot | null>(null);
+  const navigate = useNavigate();
   const [deleting, setDeleting] = useState<Pivot | null>(null);
 
-  const openCreate = () => {
-    setEditing(null);
-    setFormOpen(true);
-  };
-
-  const openEdit = (pivot: Pivot) => {
-    setEditing(pivot);
-    setFormOpen(true);
-  };
+  // Cadastro e edição têm tela própria (/pivos/novo e /pivos/:id/editar).
+  const openEdit = (pivot: Pivot) => navigate(`/pivos/${pivot.id}/editar`);
 
   if (query.isLoading) {
     return (
@@ -83,13 +75,11 @@ export const PivotsPage = () => {
               {total} {total === 1 ? "pivô" : "pivôs"}
             </span>
             {canWrite ? (
-              <Button
-                type="button"
-                className="h-10 rounded-xl px-4 text-sm"
-                onClick={openCreate}
-              >
-                <Plus className="h-4 w-4" />
-                Novo pivô
+              <Button asChild className="h-10 rounded-xl px-4 text-sm">
+                <Link to="/pivos/novo">
+                  <Plus className="h-4 w-4" />
+                  Novo pivô
+                </Link>
               </Button>
             ) : null}
           </div>
@@ -120,19 +110,12 @@ export const PivotsPage = () => {
       )}
 
       {canWrite ? (
-        <>
-          <PivotFormDialog
-            open={formOpen}
-            pivot={editing}
-            onOpenChange={setFormOpen}
-          />
-          <DeletePivotDialog
-            pivot={deleting}
-            onOpenChange={(open) => {
-              if (!open) setDeleting(null);
-            }}
-          />
-        </>
+        <DeletePivotDialog
+          pivot={deleting}
+          onOpenChange={(open) => {
+            if (!open) setDeleting(null);
+          }}
+        />
       ) : null}
     </AppShell>
   );
