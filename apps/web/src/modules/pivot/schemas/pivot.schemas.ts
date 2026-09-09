@@ -4,8 +4,21 @@ export const PIVOT_STATUSES = ["unknown", "stopped", "running"] as const;
 
 export type PivotStatus = (typeof PIVOT_STATUSES)[number];
 
+// Onde fica o zero do ângulo reportado pelo controlador: no norte geográfico
+// ou no carreador (estrada de acesso). Ver `pivotBearing` em
+// `lib/pivot-geometry.ts`.
+export const PIVOT_ANGLE_REFERENCES = ["north", "road"] as const;
+
+export type PivotAngleReference = (typeof PIVOT_ANGLE_REFERENCES)[number];
+
 // O backend pode introduzir novos estados sem quebrar a listagem: qualquer
 // string é aceita e cai no rótulo genérico (ver `pivotStatusMeta`).
+//
+// Geometria do campo (todos opcionais): ângulos do cadastro são azimutes
+// geográficos (0° = norte, sentido horário). `road_angle` é a direção do
+// carreador a partir do centro; `sweep_*` delimitam o setor irrigado dos
+// pivôs "meia-lua" (do inicial ao final, sentido horário; ambos nulos = giro
+// completo).
 export const pivotSchema = z.object({
   id: z.string(),
   tenant_id: z.string(),
@@ -17,6 +30,16 @@ export const pivotSchema = z.object({
   longitude: z.number().nullable().default(null),
   // Pressão de referência (bar) informada no cadastro; opcional.
   pressure_ref: z.number().nullable().default(null),
+  // Raio irrigado em metros.
+  radius_m: z.number().nullable().default(null),
+  // Quantidade de lances/torres ao longo do braço.
+  spans: z.number().nullable().default(null),
+  angle_reference: z.enum(PIVOT_ANGLE_REFERENCES).default("north"),
+  road_angle: z.number().nullable().default(null),
+  road_latitude: z.number().nullable().default(null),
+  road_longitude: z.number().nullable().default(null),
+  sweep_start_angle: z.number().nullable().default(null),
+  sweep_end_angle: z.number().nullable().default(null),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -54,8 +77,18 @@ const optionalCoordinate = (min: number, max: number, label: string) =>
       }
     });
 
-// Número opcional (texto no input, vírgula aceita) com mínimo.
-const optionalNumber = (min: number, label: string) =>
+// Número opcional (texto no input, vírgula aceita) com limites. `exclusive*`
+// troca "maior ou igual a" por "maior que" (idem para o máximo).
+const optionalNumber = (
+  min: number,
+  label: string,
+  options: {
+    max?: number;
+    exclusiveMin?: boolean;
+    exclusiveMax?: boolean;
+    integer?: boolean;
+  } = {},
+) =>
   z
     .string()
     .trim()
@@ -67,17 +100,43 @@ const optionalNumber = (min: number, label: string) =>
       if (!Number.isFinite(parsed)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${label} deve ser numérica`,
+          message: `${label} deve ser um número`,
         });
         return;
       }
-      if (parsed < min) {
+      if (options.integer && !Number.isInteger(parsed)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${label} deve ser maior ou igual a ${min}`,
+          message: `${label} deve ser um número inteiro`,
+        });
+        return;
+      }
+      if (options.exclusiveMin ? parsed <= min : parsed < min) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: options.exclusiveMin
+            ? `${label} deve ser maior que ${min}`
+            : `${label} deve ser maior ou igual a ${min}`,
+        });
+        return;
+      }
+      const { max } = options;
+      if (
+        max !== undefined &&
+        (options.exclusiveMax ? parsed >= max : parsed > max)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: options.exclusiveMax
+            ? `${label} deve ser menor que ${max}`
+            : `${label} deve ser menor ou igual a ${max}`,
         });
       }
     });
+
+// Azimute opcional em graus: 0 ≤ x < 360.
+const optionalBearing = (label: string) =>
+  optionalNumber(0, label, { max: 360, exclusiveMax: true });
 
 // Formulário de criação/edição. Coordenadas e pressão ficam como texto no
 // input e são convertidas no payload (`toPivotPayload`).
@@ -96,6 +155,18 @@ export const pivotFormSchema = z
     latitude: optionalCoordinate(-90, 90, "Latitude"),
     longitude: optionalCoordinate(-180, 180, "Longitude"),
     pressure_ref: optionalNumber(0, "Pressão de referência"),
+    // Geometria do campo (ver comentário em `pivotSchema`).
+    radius_m: optionalNumber(0, "Raio irrigado", {
+      max: 2000,
+      exclusiveMin: true,
+    }),
+    spans: optionalNumber(1, "Número de lances", { max: 30, integer: true }),
+    angle_reference: z.enum(PIVOT_ANGLE_REFERENCES).default("north"),
+    road_angle: optionalBearing("Ângulo do carreador"),
+    road_latitude: optionalCoordinate(-90, 90, "Latitude do carreador"),
+    road_longitude: optionalCoordinate(-180, 180, "Longitude do carreador"),
+    sweep_start_angle: optionalBearing("Ângulo inicial do setor"),
+    sweep_end_angle: optionalBearing("Ângulo final do setor"),
   })
   .superRefine((value, context) => {
     if (Boolean(value.latitude) !== Boolean(value.longitude)) {
@@ -105,6 +176,42 @@ export const pivotFormSchema = z
         message: "Informe latitude e longitude juntas",
       });
     }
+
+    // Mesmas regras cruzadas do backend (POST/PATCH /v1/pivots).
+    if (Boolean(value.road_latitude) !== Boolean(value.road_longitude)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: value.road_latitude ? ["road_longitude"] : ["road_latitude"],
+        message: "Informe latitude e longitude do carreador juntas",
+      });
+    }
+
+    if (value.angle_reference === "road" && !value.road_angle) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["road_angle"],
+        message: "Informe o ângulo do carreador para usá-lo como referência",
+      });
+    }
+
+    const hasStart = Boolean(value.sweep_start_angle);
+    const hasEnd = Boolean(value.sweep_end_angle);
+    if (hasStart !== hasEnd) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: hasStart ? ["sweep_end_angle"] : ["sweep_start_angle"],
+        message: "Informe os ângulos inicial e final do setor juntos",
+      });
+    } else if (
+      hasStart &&
+      Number(value.sweep_start_angle) === Number(value.sweep_end_angle)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["sweep_end_angle"],
+        message: "Os ângulos inicial e final do setor devem ser diferentes",
+      });
+    }
   });
 
 export type Pivot = z.infer<typeof pivotSchema>;
@@ -112,12 +219,22 @@ export type PivotListResponse = z.infer<typeof pivotListResponseSchema>;
 export type PivotFormInput = z.input<typeof pivotFormSchema>;
 export type PivotFormValues = z.output<typeof pivotFormSchema>;
 
+// Payload de POST/PATCH: todos os campos vão sempre (null quando vazio), para
+// que limpar um campo no formulário também o limpe no backend.
 export interface PivotPayload {
   name: string;
   description: string;
   latitude: number | null;
   longitude: number | null;
   pressure_ref: number | null;
+  radius_m: number | null;
+  spans: number | null;
+  angle_reference: PivotAngleReference;
+  road_angle: number | null;
+  road_latitude: number | null;
+  road_longitude: number | null;
+  sweep_start_angle: number | null;
+  sweep_end_angle: number | null;
 }
 
 const toCoordinate = (value: string) => (value ? Number(value) : null);
@@ -128,6 +245,14 @@ export const toPivotPayload = (values: PivotFormValues): PivotPayload => ({
   latitude: toCoordinate(values.latitude),
   longitude: toCoordinate(values.longitude),
   pressure_ref: toCoordinate(values.pressure_ref),
+  radius_m: toCoordinate(values.radius_m),
+  spans: toCoordinate(values.spans),
+  angle_reference: values.angle_reference,
+  road_angle: toCoordinate(values.road_angle),
+  road_latitude: toCoordinate(values.road_latitude),
+  road_longitude: toCoordinate(values.road_longitude),
+  sweep_start_angle: toCoordinate(values.sweep_start_angle),
+  sweep_end_angle: toCoordinate(values.sweep_end_angle),
 });
 
 const toCoordinateInput = (value: number | null | undefined) =>
@@ -139,6 +264,14 @@ export const toPivotFormInput = (pivot?: Pivot | null): PivotFormInput => ({
   latitude: toCoordinateInput(pivot?.latitude),
   longitude: toCoordinateInput(pivot?.longitude),
   pressure_ref: toCoordinateInput(pivot?.pressure_ref),
+  radius_m: toCoordinateInput(pivot?.radius_m),
+  spans: toCoordinateInput(pivot?.spans),
+  angle_reference: pivot?.angle_reference ?? "north",
+  road_angle: toCoordinateInput(pivot?.road_angle),
+  road_latitude: toCoordinateInput(pivot?.road_latitude),
+  road_longitude: toCoordinateInput(pivot?.road_longitude),
+  sweep_start_angle: toCoordinateInput(pivot?.sweep_start_angle),
+  sweep_end_angle: toCoordinateInput(pivot?.sweep_end_angle),
 });
 
 // Estado de telemetria do pivô (uplink `status`/`gps` do protocolo legado v2 —

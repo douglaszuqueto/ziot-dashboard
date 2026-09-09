@@ -23,6 +23,14 @@ const apiPivot = {
   latitude: -22.69,
   longitude: -46.98,
   pressure_ref: null,
+  radius_m: null,
+  spans: null,
+  angle_reference: "north",
+  road_angle: null,
+  road_latitude: null,
+  road_longitude: null,
+  sweep_start_angle: null,
+  sweep_end_angle: null,
   created_at: "2026-09-01T10:00:00Z",
   updated_at: "2026-09-02T10:00:00Z",
 };
@@ -69,6 +77,14 @@ describe("pivotFormSchema", () => {
       latitude: null,
       longitude: null,
       pressure_ref: null,
+      radius_m: null,
+      spans: null,
+      angle_reference: "north",
+      road_angle: null,
+      road_latitude: null,
+      road_longitude: null,
+      sweep_start_angle: null,
+      sweep_end_angle: null,
     });
   });
 
@@ -85,6 +101,14 @@ describe("pivotFormSchema", () => {
       latitude: -22.69,
       longitude: -46.98,
       pressure_ref: null,
+      radius_m: null,
+      spans: null,
+      angle_reference: "north",
+      road_angle: null,
+      road_latitude: null,
+      road_longitude: null,
+      sweep_start_angle: null,
+      sweep_end_angle: null,
     });
   });
 
@@ -141,6 +165,14 @@ describe("pivotFormSchema", () => {
       latitude: "-22.69",
       longitude: "-46.98",
       pressure_ref: "",
+      radius_m: "",
+      spans: "",
+      angle_reference: "north",
+      road_angle: "",
+      road_latitude: "",
+      road_longitude: "",
+      sweep_start_angle: "",
+      sweep_end_angle: "",
     });
     expect(toPivotFormInput(null)).toEqual({
       name: "",
@@ -148,7 +180,151 @@ describe("pivotFormSchema", () => {
       latitude: "",
       longitude: "",
       pressure_ref: "",
+      radius_m: "",
+      spans: "",
+      angle_reference: "north",
+      road_angle: "",
+      road_latitude: "",
+      road_longitude: "",
+      sweep_start_angle: "",
+      sweep_end_angle: "",
     });
+  });
+});
+
+describe("pivotFormSchema — geometria do campo", () => {
+  const base = {
+    name: "Pivô 06",
+    description: "",
+    latitude: "",
+    longitude: "",
+  };
+
+  const issuePaths = (input: Record<string, unknown>) => {
+    const result = pivotFormSchema.safeParse({ ...base, ...input });
+    return result.success
+      ? []
+      : result.error.issues.map((issue) => issue.path.join("."));
+  };
+
+  it("converte raio, lances, carreador e setor aceitando vírgula", () => {
+    const valid = pivotFormSchema.parse({
+      ...base,
+      radius_m: "535,5",
+      spans: "9",
+      angle_reference: "road",
+      road_angle: "270",
+      road_latitude: "-20,30",
+      road_longitude: "-48.31",
+      sweep_start_angle: "350",
+      sweep_end_angle: "10",
+    });
+    expect(toPivotPayload(valid)).toMatchObject({
+      radius_m: 535.5,
+      spans: 9,
+      angle_reference: "road",
+      road_angle: 270,
+      road_latitude: -20.3,
+      road_longitude: -48.31,
+      sweep_start_angle: 350,
+      sweep_end_angle: 10,
+    });
+  });
+
+  it("usa norte como referência padrão e envia null nos campos vazios", () => {
+    const valid = pivotFormSchema.parse(base);
+    expect(valid.angle_reference).toBe("north");
+    expect(toPivotPayload(valid)).toMatchObject({
+      radius_m: null,
+      spans: null,
+      angle_reference: "north",
+      road_angle: null,
+      sweep_start_angle: null,
+      sweep_end_angle: null,
+    });
+  });
+
+  it("valida os limites do raio e dos lances", () => {
+    expect(issuePaths({ radius_m: "0" })).toEqual(["radius_m"]);
+    expect(issuePaths({ radius_m: "2001" })).toEqual(["radius_m"]);
+    expect(issuePaths({ radius_m: "2000" })).toEqual([]);
+    expect(issuePaths({ radius_m: "abc" })).toEqual(["radius_m"]);
+    expect(issuePaths({ spans: "0" })).toEqual(["spans"]);
+    expect(issuePaths({ spans: "31" })).toEqual(["spans"]);
+    expect(issuePaths({ spans: "2.5" })).toEqual(["spans"]);
+    expect(issuePaths({ spans: "30" })).toEqual([]);
+  });
+
+  it("aceita azimutes em [0, 360)", () => {
+    expect(issuePaths({ road_angle: "0" })).toEqual([]);
+    expect(issuePaths({ road_angle: "359,9" })).toEqual([]);
+    expect(issuePaths({ road_angle: "360" })).toEqual(["road_angle"]);
+    expect(issuePaths({ road_angle: "-1" })).toEqual(["road_angle"]);
+  });
+
+  it("exige o ângulo do carreador quando ele é a referência", () => {
+    expect(issuePaths({ angle_reference: "road" })).toEqual(["road_angle"]);
+    expect(issuePaths({ angle_reference: "road", road_angle: "0" })).toEqual(
+      [],
+    );
+    expect(issuePaths({ angle_reference: "north" })).toEqual([]);
+  });
+
+  it("exige latitude e longitude do carreador juntas", () => {
+    expect(issuePaths({ road_latitude: "-20.3" })).toEqual(["road_longitude"]);
+    expect(issuePaths({ road_longitude: "-48.3" })).toEqual(["road_latitude"]);
+    expect(
+      issuePaths({ road_latitude: "-20.3", road_longitude: "-48.3" }),
+    ).toEqual([]);
+    expect(
+      issuePaths({ road_latitude: "95", road_longitude: "-48.3" }),
+    ).toEqual(["road_latitude"]);
+  });
+
+  it("exige os dois ângulos do setor, diferentes entre si", () => {
+    expect(issuePaths({ sweep_start_angle: "90" })).toEqual([
+      "sweep_end_angle",
+    ]);
+    expect(issuePaths({ sweep_end_angle: "90" })).toEqual([
+      "sweep_start_angle",
+    ]);
+    expect(
+      issuePaths({ sweep_start_angle: "90", sweep_end_angle: "90,0" }),
+    ).toEqual(["sweep_end_angle"]);
+    expect(
+      issuePaths({ sweep_start_angle: "90", sweep_end_angle: "270" }),
+    ).toEqual([]);
+  });
+
+  it("preenche e lê de volta a geometria de um pivô existente", () => {
+    const parsed = pivotSchema.parse({
+      ...apiPivot,
+      radius_m: 535,
+      spans: 9,
+      angle_reference: "road",
+      road_angle: 270,
+      sweep_start_angle: 350,
+      sweep_end_angle: 10,
+    });
+    expect(toPivotFormInput(parsed)).toMatchObject({
+      radius_m: "535",
+      spans: "9",
+      angle_reference: "road",
+      road_angle: "270",
+      road_latitude: "",
+      road_longitude: "",
+      sweep_start_angle: "350",
+      sweep_end_angle: "10",
+    });
+  });
+
+  it("aplica defaults da geometria no contrato da API", () => {
+    const { radius_m, angle_reference, ...rest } = apiPivot;
+    const parsed = pivotSchema.parse(rest);
+    expect(parsed.radius_m).toBeNull();
+    expect(parsed.angle_reference).toBe("north");
+    expect(radius_m).toBeNull();
+    expect(angle_reference).toBe("north");
   });
 });
 
