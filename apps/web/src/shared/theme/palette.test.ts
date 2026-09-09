@@ -21,26 +21,35 @@ describe("palette", () => {
     vi.restoreAllMocks();
   });
 
-  it("usa o azul Ziot quando nada foi salvo", () => {
-    expect(readStoredPalette()).toBe("ziot");
+  it("usa o verde HortiShop quando nada foi salvo", () => {
+    expect(readStoredPalette()).toBe("hortishop");
+    expect(PALETTES.hortishop.label).toBe("Verde HortiShop");
     expect(PALETTES.ziot.label).toBe("Azul Ziot");
   });
 
   it("aplica o data-palette no <html> e persiste no localStorage", () => {
-    applyPalette("hortishop");
+    applyPalette("ziot");
 
+    expect(document.documentElement.dataset.palette).toBe("ziot");
+    expect(window.localStorage.getItem(PALETTE_STORAGE_KEY)).toBe("ziot");
+    expect(readStoredPalette()).toBe("ziot");
+  });
+
+  it("na carga inicial aplica sem persistir, para o padrão poder mudar depois", () => {
+    expect(applyPalette(readStoredPalette(), { persist: false })).toBe(
+      "hortishop",
+    );
     expect(document.documentElement.dataset.palette).toBe("hortishop");
-    expect(window.localStorage.getItem(PALETTE_STORAGE_KEY)).toBe("hortishop");
-    expect(readStoredPalette()).toBe("hortishop");
+    expect(window.localStorage.getItem(PALETTE_STORAGE_KEY)).toBeNull();
   });
 
   it("cai no padrão para valores desconhecidos", () => {
     window.localStorage.setItem(PALETTE_STORAGE_KEY, "roxo");
-    expect(readStoredPalette()).toBe("ziot");
+    expect(readStoredPalette()).toBe("hortishop");
 
-    expect(applyPalette("roxo")).toBe("ziot");
-    expect(document.documentElement.dataset.palette).toBe("ziot");
-    expect(window.localStorage.getItem(PALETTE_STORAGE_KEY)).toBe("ziot");
+    expect(applyPalette("roxo")).toBe("hortishop");
+    expect(document.documentElement.dataset.palette).toBe("hortishop");
+    expect(window.localStorage.getItem(PALETTE_STORAGE_KEY)).toBe("hortishop");
   });
 
   it("segue funcionando quando o storage falha", () => {
@@ -51,14 +60,14 @@ describe("palette", () => {
       throw new Error("storage indisponível");
     });
 
-    expect(readStoredPalette()).toBe("ziot");
+    expect(readStoredPalette()).toBe("hortishop");
     expect(applyPalette("solo")).toBe("solo");
     expect(document.documentElement.dataset.palette).toBe("solo");
   });
 
   it("expõe a paleta ativa pelo hook e reage a setPalette", () => {
     const { result } = renderHook(() => usePalette());
-    expect(result.current.palette).toBe("ziot");
+    expect(result.current.palette).toBe("hortishop");
 
     act(() => {
       result.current.setPalette("solo");

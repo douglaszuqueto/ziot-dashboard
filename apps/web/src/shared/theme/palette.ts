@@ -2,8 +2,9 @@ import { useSyncExternalStore } from "react";
 
 // Paletas disponíveis para comparação em runtime. Cada chave vira um
 // `data-palette` no <html>; o CSS em index.css decide as cores por token, então
-// nenhuma tela precisa conhecer a paleta ativa. "ziot" é o padrão e não
-// escreve atributo extra — os tokens de [data-brand="ziot"] já valem.
+// nenhuma tela precisa conhecer a paleta ativa. O padrão é o verde HortiShop
+// (decisão do Douglas, 2026-09-09); "ziot" mantém o azul original como opção
+// de comparação.
 export const PALETTES = {
   ziot: { key: "ziot", label: "Azul Ziot" },
   hortishop: { key: "hortishop", label: "Verde HortiShop" },
@@ -12,7 +13,7 @@ export const PALETTES = {
 
 export type PaletteKey = keyof typeof PALETTES;
 
-export const DEFAULT_PALETTE: PaletteKey = "ziot";
+export const DEFAULT_PALETTE: PaletteKey = "hortishop";
 
 export const PALETTE_STORAGE_KEY = "ziot.palette";
 
@@ -43,10 +44,15 @@ const persistPalette = (palette: PaletteKey) => {
 let currentPalette: PaletteKey = DEFAULT_PALETTE;
 const listeners = new Set<() => void>();
 
-export const applyPalette = (key: unknown) => {
+// `persist: false` é para a carga inicial: aplicar o padrão sem gravá-lo, para
+// que uma troca futura do padrão valha para quem nunca escolheu uma paleta.
+export const applyPalette = (
+  key: unknown,
+  { persist = true }: { persist?: boolean } = {},
+) => {
   const palette = isPaletteKey(key) ? key : DEFAULT_PALETTE;
   document.documentElement.dataset.palette = palette;
-  persistPalette(palette);
+  if (persist) persistPalette(palette);
 
   if (palette !== currentPalette) {
     currentPalette = palette;

@@ -10,7 +10,7 @@ registerSW({ immediate: true });
 
 applyBrandTheme();
 // A paleta escolhida pelo usuário sobrepõe os tokens da marca (ver index.css).
-applyPalette(readStoredPalette());
+applyPalette(readStoredPalette(), { persist: false });
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

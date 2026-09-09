@@ -26,7 +26,7 @@ const openMenu = () => {
 describe("UserMenu", () => {
   beforeEach(() => {
     window.localStorage.clear();
-    applyPalette("ziot");
+    applyPalette("hortishop");
     logout.mockClear();
   });
 
@@ -41,7 +41,7 @@ describe("UserMenu", () => {
       "Verde Solo Digital",
     ]);
     expect(
-      screen.getByRole("menuitemradio", { name: "Azul Ziot" }),
+      screen.getByRole("menuitemradio", { name: "Verde HortiShop" }),
     ).toHaveAttribute("aria-checked", "true");
 
     const menuItems = Array.from(
