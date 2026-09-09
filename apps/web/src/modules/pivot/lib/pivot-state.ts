@@ -67,6 +67,16 @@ export const formatOperatingTime = (minutes?: number | null) => {
 
 export const isSecurityTriggered = (state?: PivotState) => state?.secure === 2;
 
+// Situação do braço para a cor no mapa (mesma prioridade de `pivotCaption`):
+// segurança acionada > em operação (água / seco) > parado ou sem telemetria.
+export type PivotArmStatus = "water" | "dry" | "stopped" | "security";
+
+export const pivotArmStatus = (state?: PivotState): PivotArmStatus => {
+  if (isSecurityTriggered(state)) return "security";
+  if (state?.running === true) return state.mode === 1 ? "dry" : "water";
+  return "stopped";
+};
+
 // Legenda abaixo da ilustração: a telemetria (quando existir) tem prioridade
 // sobre o status cadastral.
 export const pivotCaption = (fallback: string, state?: PivotState): string => {

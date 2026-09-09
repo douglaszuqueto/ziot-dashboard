@@ -11,6 +11,7 @@ import {
   formatPivotRunning,
   formatPivotSecure,
   formatPivotVoltage,
+  pivotArmStatus,
   pivotCaption,
 } from "@/modules/pivot/lib/pivot-state";
 
@@ -85,5 +86,16 @@ describe("pivot-state formatters", () => {
       "Em operação a seco",
     );
     expect(pivotCaption("Em operação", { running: false })).toBe("Pivô parado");
+  });
+
+  it("classifica o braço para a cor no mapa com a mesma prioridade da legenda", () => {
+    expect(pivotArmStatus(undefined)).toBe("stopped");
+    expect(pivotArmStatus({ running: false, mode: 2 })).toBe("stopped");
+    expect(pivotArmStatus({ running: true, mode: 2 })).toBe("water");
+    expect(pivotArmStatus({ running: true, mode: 1 })).toBe("dry");
+    expect(pivotArmStatus({ running: true })).toBe("water");
+    expect(pivotArmStatus({ running: true, mode: 2, secure: 2 })).toBe(
+      "security",
+    );
   });
 });

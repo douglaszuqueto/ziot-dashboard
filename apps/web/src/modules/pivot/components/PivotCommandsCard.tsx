@@ -54,8 +54,10 @@ const commandErrorMessage = (error: unknown) =>
     ? COMMANDS_UNAVAILABLE_MESSAGE
     : translateApiError(error, "Não foi possível enviar o comando.");
 
+// Alturas generosas de propósito: os botões de comando são usados no campo,
+// muitas vezes no celular e com luva.
 const toggleItemClassName =
-  "h-10 flex-1 gap-2 rounded-lg text-sm font-medium text-muted-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm hover:bg-card hover:text-foreground";
+  "h-12 flex-1 gap-2 rounded-lg text-sm font-medium text-muted-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm hover:bg-card hover:text-foreground";
 
 // "Programação manual" do app legado, adaptada ao desktop: DIREÇÃO, MODO e
 // VELOCIDADE lado a lado, ação Parar / Iniciar e os pedidos de status e
@@ -126,7 +128,7 @@ export const PivotCommandsCard = ({ pivotId }: { pivotId: string }) => {
           <Button
             type="button"
             variant="secondary"
-            className="h-10 rounded-xl px-4 text-sm font-medium"
+            className="h-11 rounded-xl px-4 text-sm font-medium"
             disabled={busy}
             onClick={() =>
               void send("Pedido de status enviado.", () => status.mutateAsync())
@@ -140,7 +142,7 @@ export const PivotCommandsCard = ({ pivotId }: { pivotId: string }) => {
           <Button
             type="button"
             variant="secondary"
-            className="h-10 rounded-xl px-4 text-sm font-medium"
+            className="h-11 rounded-xl px-4 text-sm font-medium"
             disabled={busy}
             onClick={() =>
               void send("Pedido de posição enviado.", () => gps.mutateAsync())
@@ -198,7 +200,7 @@ export const PivotCommandsCard = ({ pivotId }: { pivotId: string }) => {
         </CommandGroup>
 
         <CommandGroup label="Velocidade (%)" value={`${speed}%`}>
-          <div className="flex h-12 items-center rounded-xl bg-secondary/60 px-4">
+          <div className="flex h-14 items-center rounded-xl bg-secondary/60 px-4">
             <Slider
               aria-label="Velocidade"
               min={0}
@@ -235,7 +237,7 @@ export const PivotCommandsCard = ({ pivotId }: { pivotId: string }) => {
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            className="h-11 rounded-xl bg-alert px-5 text-sm font-medium text-white hover:bg-alert/90"
+            className="h-14 flex-1 rounded-xl bg-alert px-8 text-base font-semibold text-white hover:bg-alert/90 lg:flex-none"
             disabled={busy}
             onClick={stop}
           >
@@ -244,7 +246,7 @@ export const PivotCommandsCard = ({ pivotId }: { pivotId: string }) => {
           </Button>
           <Button
             type="button"
-            className="h-11 rounded-xl px-5 text-sm font-medium"
+            className="h-14 flex-1 rounded-xl px-8 text-base font-semibold lg:flex-none"
             disabled={busy}
             onClick={start}
           >

@@ -14,7 +14,6 @@ import {
 import { PivotCommandsCard } from "@/modules/pivot/components/PivotCommandsCard";
 import { PivotFormDialog } from "@/modules/pivot/components/PivotFormDialog";
 import { PivotHistoryCard } from "@/modules/pivot/components/PivotHistoryCard";
-import { PivotLocationCard } from "@/modules/pivot/components/PivotLocationCard";
 import { PivotOverview } from "@/modules/pivot/components/PivotOverview";
 import { PivotStatusBadge } from "@/modules/pivot/components/PivotStatusBadge";
 import {
@@ -185,11 +184,11 @@ export const PivotDetailPage = () => {
         </div>
       </section>
 
+      {/* Ordem pedida pelo Douglas: título, widgets com telemetria (o pivô
+          no mapa dentro do resumo), comandos, histórico. */}
+      <PivotOverview pivot={pivot} state={telemetry} canWrite={canWrite} />
+
       {canCommand ? <PivotCommandsCard pivotId={pivot.id} /> : null}
-
-      <PivotOverview pivot={pivot} state={telemetry} />
-
-      <PivotLocationCard pivot={pivot} canWrite={canWrite} />
 
       <PivotCharts series={series} />
 

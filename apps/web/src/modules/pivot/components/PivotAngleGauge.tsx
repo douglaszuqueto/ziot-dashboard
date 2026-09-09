@@ -14,17 +14,23 @@ const toPoint = (bearing: number, radius: number) => {
 // e "—°".
 export const PivotAngleGauge = ({
   angle,
+  bearing,
   size = 80,
   className,
 }: {
+  // Ângulo reportado pelo controlador — é o número exibido.
   angle?: number | null;
+  // Azimute geográfico para a agulha (ver `pivotBearing`); sem ele a agulha
+  // usa o próprio `angle`.
+  bearing?: number | null;
   size?: number;
   className?: string;
 }) => {
   const titleId = useId();
-  const hasAngle = typeof angle === "number" && Number.isFinite(angle);
+  const needle = bearing ?? angle;
+  const hasAngle = typeof needle === "number" && Number.isFinite(needle);
   const label = formatPivotAngle(angle);
-  const tip = hasAngle ? toPoint(angle, 32) : null;
+  const tip = hasAngle ? toPoint(needle, 32) : null;
 
   return (
     <div className={cn("flex shrink-0 flex-col items-center gap-1", className)}>
