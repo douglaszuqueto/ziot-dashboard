@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PivotLocationCard } from "@/modules/pivot/components/PivotLocationCard";
+import { PivotMapPanel } from "@/modules/pivot/components/PivotMapPanel";
 import type { Pivot } from "@/modules/pivot/schemas/pivot.schemas";
 import { env } from "@/shared/config/env";
 
@@ -79,21 +79,20 @@ const pivot: Pivot = {
 
 const LEGEND = ["Água", "Seco", "Parado", "Segurança"];
 
-describe("PivotLocationCard", () => {
+describe("PivotMapPanel", () => {
   beforeEach(() => {
     env.VITE_GOOGLE_MAPS_API_KEY = "";
   });
 
   it("mostra estado vazio quando o pivô não tem coordenadas", () => {
     render(
-      <PivotLocationCard
+      <PivotMapPanel
         pivot={{ ...pivot, latitude: null, longitude: null }}
         canWrite
       />,
     );
 
-    expect(screen.getByText("Localização")).toBeInTheDocument();
-    expect(screen.getAllByText("Sem localização cadastrada")).toHaveLength(2);
+    expect(screen.getByText("Sem localização cadastrada")).toBeInTheDocument();
     expect(screen.getByText(/Use "Editar"/)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Google Maps/ })).toBeNull();
     expect(screen.queryByTestId("maps-provider")).toBeNull();
@@ -102,12 +101,22 @@ describe("PivotLocationCard", () => {
     }
   });
 
-  it("mostra placeholder com coordenadas quando não há chave da API", () => {
-    render(<PivotLocationCard pivot={pivot} />);
-
-    expect(screen.getAllByText("-20,3026 · -48,3094").length).toBeGreaterThan(
-      0,
+  it("usa o fallback no lugar do estado vazio quando ele é informado", () => {
+    render(
+      <PivotMapPanel
+        pivot={{ ...pivot, latitude: null, longitude: null }}
+        fallback={<p>Ilustração</p>}
+      />,
     );
+
+    expect(screen.getByText("Ilustração")).toBeInTheDocument();
+    expect(screen.queryByText("Sem localização cadastrada")).toBeNull();
+  });
+
+  it("mostra placeholder com coordenadas quando não há chave da API", () => {
+    render(<PivotMapPanel pivot={pivot} />);
+
+    expect(screen.getByText("-20,3026 · -48,3094")).toBeInTheDocument();
     expect(screen.getByText(/Configure/, { selector: "p" })).toHaveTextContent(
       "Configure VITE_GOOGLE_MAPS_API_KEY para exibir o mapa",
     );
@@ -118,7 +127,7 @@ describe("PivotLocationCard", () => {
   it("monta o provider, o mapa híbrido e o marcador quando há chave", () => {
     env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
 
-    render(<PivotLocationCard pivot={{ ...pivot, device_id: "dev-42" }} />);
+    render(<PivotMapPanel pivot={{ ...pivot, device_id: "dev-42" }} />);
 
     expect(screen.getByTestId("maps-provider")).toHaveAttribute(
       "data-api-key",
@@ -133,29 +142,28 @@ describe("PivotLocationCard", () => {
       "title",
       "Pivô 01",
     );
+    expect(screen.getByText("-20,3026 · -48,3094")).toBeInTheDocument();
     expect(screen.queryByText(/Configure/)).toBeNull();
   });
 
   it("pede o raio irrigado quando ele não foi cadastrado", () => {
     env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
 
-    const { rerender } = render(<PivotLocationCard pivot={pivot} />);
+    const { rerender } = render(<PivotMapPanel pivot={pivot} />);
     expect(
       screen.getByText(
         "Informe o raio irrigado no cadastro para desenhar o pivô.",
       ),
     ).toBeInTheDocument();
 
-    rerender(<PivotLocationCard pivot={pivot} canWrite />);
+    rerender(<PivotMapPanel pivot={pivot} canWrite />);
     expect(
       screen.getByText(
         'Use "Editar" para informar o raio irrigado e desenhar o pivô.',
       ),
     ).toBeInTheDocument();
 
-    rerender(
-      <PivotLocationCard pivot={{ ...pivot, radius_m: 535 }} canWrite />,
-    );
+    rerender(<PivotMapPanel pivot={{ ...pivot, radius_m: 535 }} canWrite />);
     expect(screen.queryByText(/raio irrigado/)).toBeNull();
   });
 
@@ -163,7 +171,7 @@ describe("PivotLocationCard", () => {
     env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
 
     const { rerender } = render(
-      <PivotLocationCard pivot={{ ...pivot, radius_m: 535 }} />,
+      <PivotMapPanel pivot={{ ...pivot, radius_m: 535 }} />,
     );
 
     expect(screen.getByTestId("google-map")).toHaveAttribute("data-zoom", "15");
@@ -174,7 +182,7 @@ describe("PivotLocationCard", () => {
     expect(screen.getByText("Aguardando telemetria")).toBeInTheDocument();
 
     rerender(
-      <PivotLocationCard
+      <PivotMapPanel
         pivot={{ ...pivot, radius_m: 100 }}
         state={{ running: true, mode: 2, angle: 137.6 }}
       />,
@@ -189,7 +197,7 @@ describe("PivotLocationCard", () => {
     env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
 
     render(
-      <PivotLocationCard
+      <PivotMapPanel
         pivot={{
           ...pivot,
           radius_m: 535,
@@ -211,7 +219,7 @@ describe("PivotLocationCard", () => {
     env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
 
     const { rerender } = render(
-      <PivotLocationCard
+      <PivotMapPanel
         pivot={{
           ...pivot,
           radius_m: 535,
@@ -229,7 +237,7 @@ describe("PivotLocationCard", () => {
 
     // Sem ângulo na telemetria não há braço nem torres, só campo e carreador.
     rerender(
-      <PivotLocationCard
+      <PivotMapPanel
         pivot={{
           ...pivot,
           radius_m: 535,

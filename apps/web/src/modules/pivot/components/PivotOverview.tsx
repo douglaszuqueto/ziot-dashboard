@@ -13,6 +13,7 @@ import {
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { PivotIllustration } from "@/modules/pivot/components/PivotIllustration";
+import { PivotMapPanel } from "@/modules/pivot/components/PivotMapPanel";
 import { PivotMetricTile } from "@/modules/pivot/components/PivotMetricTile";
 import { pivotBearing } from "@/modules/pivot/lib/pivot-geometry";
 import {
@@ -37,13 +38,17 @@ import type { Pivot, PivotState } from "@/modules/pivot/schemas/pivot.schemas";
 import { formatInteger, formatNumber } from "@/shared/lib/format";
 
 // Cartão de três colunas do detalhe (mesma composição do resumo da estufa):
-// ESTADO · PIVÔ (contadores + ilustração + legenda) · HIDRÁULICA E ELÉTRICA.
+// ESTADO · PIVÔ (contadores + pivô no mapa + legenda) · HIDRÁULICA E
+// ELÉTRICA. A coluna do meio é mais larga para o mapa; sem coordenadas ou
+// sem chave do Google Maps ela volta à ilustração.
 export const PivotOverview = ({
   pivot,
   state,
+  canWrite = false,
 }: {
   pivot: Pivot;
   state?: PivotState;
+  canWrite?: boolean;
 }) => {
   const meta = pivotStatusMeta(
     resolvePivotStatus(pivot.status, state?.running),
@@ -53,7 +58,7 @@ export const PivotOverview = ({
   const securityTriggered = isSecurityTriggered(state);
 
   return (
-    <section className="grid grid-cols-1 gap-4 rounded-3xl bg-card p-4 shadow-[var(--shadow-card)] lg:grid-cols-[0.9fr_1.15fr_0.95fr] lg:p-5">
+    <section className="grid grid-cols-1 gap-4 rounded-3xl bg-card p-4 shadow-[var(--shadow-card)] lg:grid-cols-[0.8fr_1.6fr_0.8fr] lg:p-5">
       <OverviewColumn title="Estado" subtitle="Os nove estados do pivô">
         <PivotMetricTile
           icon={Power}
@@ -105,17 +110,29 @@ export const PivotOverview = ({
               value={formatInteger(state?.alerts_count ?? 0)}
             />
           </div>
-          <div className="mt-5 flex min-h-32 items-center justify-center rounded-3xl border border-primary/15 bg-card/75 px-4 py-3">
-            <PivotIllustration
-              className="max-h-56"
-              // Azimute (aplica a referência do carreador); o número do
-              // contador acima continua sendo o ângulo do controlador.
-              angle={pivotBearing(pivot, state?.angle) ?? 40}
+          <div className="mt-5">
+            <PivotMapPanel
+              pivot={pivot}
+              state={state}
+              canWrite={canWrite}
+              fallback={
+                <>
+                  <div className="flex min-h-32 items-center justify-center rounded-3xl border border-primary/15 bg-card/75 px-4 py-3">
+                    <PivotIllustration
+                      className="max-h-56"
+                      // Azimute (aplica a referência do carreador); o número
+                      // do contador acima continua sendo o ângulo do
+                      // controlador.
+                      angle={pivotBearing(pivot, state?.angle) ?? 40}
+                    />
+                  </div>
+                  <p className="mt-3 text-center text-sm font-medium text-foreground">
+                    {pivotCaption(meta.caption, state)}
+                  </p>
+                </>
+              }
             />
           </div>
-          <p className="mt-3 text-center text-sm font-medium text-foreground">
-            {pivotCaption(meta.caption, state)}
-          </p>
         </div>
       </div>
 
