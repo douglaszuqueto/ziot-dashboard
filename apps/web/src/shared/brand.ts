@@ -25,7 +25,7 @@ const brandByKey = {
     pwa: {
       manifest: "/manifest-ziot.webmanifest",
       appleTouchIcon: "/brands/ziot-apple-touch-180.png",
-      themeColor: "#102860",
+      themeColor: "#143428",
     },
   },
 } as const;

@@ -4,13 +4,10 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 import { applyBrandTheme } from "@/shared/brand";
-import { applyPalette, readStoredPalette } from "@/shared/theme/palette";
 
 registerSW({ immediate: true });
 
 applyBrandTheme();
-// A paleta escolhida pelo usuário sobrepõe os tokens da marca (ver index.css).
-applyPalette(readStoredPalette());
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
