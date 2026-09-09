@@ -25,7 +25,8 @@
     "strict": false,
     "target": "ES2022",
     "types": [
-      "vitest/globals"
+      "vitest/globals",
+      "google.maps"
     ],
     "useDefineForClassFields": true,
     "strictNullChecks": true

@@ -189,7 +189,7 @@ export const PivotDetailPage = () => {
 
       <PivotOverview pivot={pivot} state={telemetry} />
 
-      <PivotLocationCard pivot={pivot} canWrite={canWrite} />
+      <PivotLocationCard pivot={pivot} state={telemetry} canWrite={canWrite} />
 
       <PivotCharts series={series} />
 

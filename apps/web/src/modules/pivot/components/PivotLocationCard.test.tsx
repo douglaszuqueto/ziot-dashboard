@@ -9,6 +9,8 @@ vi.mock("@/shared/config/env", () => ({
   env: { VITE_GOOGLE_MAPS_API_KEY: "" },
 }));
 
+// Sem o SDK do Google: `useMap`/`useMapsLibrary` nulos fazem o widget pular
+// os overlays imperativos; os marcadores viram divs para inspeção.
 vi.mock("@vis.gl/react-google-maps", () => ({
   APIProvider: ({
     apiKey,
@@ -38,9 +40,19 @@ vi.mock("@vis.gl/react-google-maps", () => ({
       {children}
     </div>
   ),
-  AdvancedMarker: ({ children }: { children: ReactNode }) => (
-    <div data-testid="map-marker">{children}</div>
+  AdvancedMarker: ({
+    children,
+    title,
+  }: {
+    children: ReactNode;
+    title?: string;
+  }) => (
+    <div data-testid="map-marker" title={title}>
+      {children}
+    </div>
   ),
+  useMap: () => null,
+  useMapsLibrary: () => null,
 }));
 
 const pivot: Pivot = {
@@ -65,6 +77,8 @@ const pivot: Pivot = {
   updated_at: "2026-09-02T10:00:00Z",
 };
 
+const LEGEND = ["Água", "Seco", "Parado", "Segurança"];
+
 describe("PivotLocationCard", () => {
   beforeEach(() => {
     env.VITE_GOOGLE_MAPS_API_KEY = "";
@@ -83,6 +97,9 @@ describe("PivotLocationCard", () => {
     expect(screen.getByText(/Use "Editar"/)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Google Maps/ })).toBeNull();
     expect(screen.queryByTestId("maps-provider")).toBeNull();
+    for (const label of LEGEND) {
+      expect(screen.queryByText(label)).toBeNull();
+    }
   });
 
   it("mostra placeholder com coordenadas quando não há chave da API", () => {
@@ -95,6 +112,7 @@ describe("PivotLocationCard", () => {
       "Configure VITE_GOOGLE_MAPS_API_KEY para exibir o mapa",
     );
     expect(screen.queryByTestId("maps-provider")).toBeNull();
+    expect(screen.queryByText("Parado")).toBeNull();
   });
 
   it("monta o provider, o mapa híbrido e o marcador quando há chave", () => {
@@ -111,7 +129,119 @@ describe("PivotLocationCard", () => {
       "hybrid",
     );
     expect(screen.getByTestId("google-map")).toHaveAttribute("data-zoom", "15");
-    expect(screen.getByTestId("map-marker")).toBeInTheDocument();
+    expect(screen.getByTestId("map-marker")).toHaveAttribute(
+      "title",
+      "Pivô 01",
+    );
     expect(screen.queryByText(/Configure/)).toBeNull();
+  });
+
+  it("pede o raio irrigado quando ele não foi cadastrado", () => {
+    env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
+
+    const { rerender } = render(<PivotLocationCard pivot={pivot} />);
+    expect(
+      screen.getByText(
+        "Informe o raio irrigado no cadastro para desenhar o pivô.",
+      ),
+    ).toBeInTheDocument();
+
+    rerender(<PivotLocationCard pivot={pivot} canWrite />);
+    expect(
+      screen.getByText(
+        'Use "Editar" para informar o raio irrigado e desenhar o pivô.',
+      ),
+    ).toBeInTheDocument();
+
+    rerender(
+      <PivotLocationCard pivot={{ ...pivot, radius_m: 535 }} canWrite />,
+    );
+    expect(screen.queryByText(/raio irrigado/)).toBeNull();
+  });
+
+  it("renderiza a legenda das cores e a legenda de estado junto do mapa", () => {
+    env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
+
+    const { rerender } = render(
+      <PivotLocationCard pivot={{ ...pivot, radius_m: 535 }} />,
+    );
+
+    expect(screen.getByTestId("google-map")).toHaveAttribute("data-zoom", "15");
+    for (const label of LEGEND) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    expect(screen.queryByText("Carreador")).toBeNull();
+    expect(screen.getByText("Aguardando telemetria")).toBeInTheDocument();
+
+    rerender(
+      <PivotLocationCard
+        pivot={{ ...pivot, radius_m: 100 }}
+        state={{ running: true, mode: 2, angle: 137.6 }}
+      />,
+    );
+    expect(screen.getByTestId("google-map")).toHaveAttribute("data-zoom", "17");
+    expect(screen.getByText("Em operação com água")).toBeInTheDocument();
+    expect(screen.getByText(/138°/)).toBeInTheDocument();
+    expect(screen.queryByText(/zero no carreador/)).toBeNull();
+  });
+
+  it("mostra o chip, o rótulo e o pino do carreador quando ele é cadastrado", () => {
+    env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
+
+    render(
+      <PivotLocationCard
+        pivot={{
+          ...pivot,
+          radius_m: 535,
+          road_angle: 270,
+          road_latitude: -20.3,
+          road_longitude: -48.32,
+        }}
+      />,
+    );
+
+    // Chip da legenda + rótulo sobre o mapa.
+    expect(screen.getAllByText("Carreador")).toHaveLength(2);
+    expect(screen.getByTestId("map-road-label")).toBeInTheDocument();
+    expect(screen.getByTestId("map-road-pin")).toBeInTheDocument();
+    expect(screen.getAllByTestId("map-marker")).toHaveLength(3);
+  });
+
+  it("desenha as torres no braço e avisa que o zero do ângulo está no carreador", () => {
+    env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
+
+    const { rerender } = render(
+      <PivotLocationCard
+        pivot={{
+          ...pivot,
+          radius_m: 535,
+          spans: 3,
+          angle_reference: "road",
+          road_angle: 270,
+        }}
+        state={{ running: false, angle: 180 }}
+      />,
+    );
+
+    expect(screen.getAllByTestId("map-tower")).toHaveLength(3);
+    expect(screen.getByText("Pivô parado")).toBeInTheDocument();
+    expect(screen.getByText(/zero no carreador, 180°/)).toBeInTheDocument();
+
+    // Sem ângulo na telemetria não há braço nem torres, só campo e carreador.
+    rerender(
+      <PivotLocationCard
+        pivot={{
+          ...pivot,
+          radius_m: 535,
+          spans: 3,
+          angle_reference: "road",
+          road_angle: 270,
+        }}
+        state={{ running: false }}
+      />,
+    );
+    expect(screen.queryByTestId("map-tower")).toBeNull();
+    expect(screen.getByTestId("map-road-label")).toBeInTheDocument();
+    expect(screen.queryByText(/zero no carreador/)).toBeNull();
   });
 });
